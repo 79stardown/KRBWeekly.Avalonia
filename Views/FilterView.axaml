@@ -1,0 +1,173 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="using:KRBWeekly.Controls"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="KRBWeekly.Views.FilterView">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.link">
+            <Setter Property="Foreground" Value="#FF0078D4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="TextDecorations" Value="Underline" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题 + 返回 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+            <Button x:Name="BtnBack"
+                    Width="110" Height="32" Click="BtnBack_Click"
+                    Background="White" Foreground="#FF1A1A1A"
+                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="Back" FontSize="13" />
+                    <TextBlock Text="返回统计" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <ui:SymbolIcon Symbol="Filter" FontSize="22" VerticalAlignment="Center" />
+            <TextBlock Text="结果筛选" FontSize="24" FontWeight="Bold" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- 记录选择 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="选择记录:" FontSize="13" Foreground="#FF605E5C" VerticalAlignment="Center" />
+            <ComboBox x:Name="CbRecords" Width="280"
+                      SelectionChanged="CbRecords_SelectionChanged" />
+        </StackPanel>
+
+        <!-- 工具栏 -->
+        <WrapPanel Grid.Row="2" Margin="0,0,0,12">
+            <Button x:Name="BtnSelectAll"
+                    Width="90" Height="32" Margin="0,0,10,0"
+                    Click="BtnSelectAll_Click"
+                    Background="White" Foreground="#FF1A1A1A"
+                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="Accept" FontSize="13" />
+                    <TextBlock Text="全选" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button x:Name="BtnDeselectAll"
+                    Width="110" Height="32" Margin="0,0,10,0"
+                    Click="BtnDeselectAll_Click"
+                    Background="White" Foreground="#FF1A1A1A"
+                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="Clear" FontSize="13" />
+                    <TextBlock Text="取消全选" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button x:Name="BtnExport"
+                    Width="150" Height="32" Margin="0,0,10,0"
+                    Click="BtnExport_Click"
+                    Background="#FF107C10" Foreground="White"
+                    FontWeight="SemiBold">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="Save" FontSize="13" Foreground="White" />
+                    <TextBlock x:Name="TxtExportLabel" Text="导出勾选的" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button x:Name="BtnBlacklist"
+                    Width="170" Height="32"
+                    Click="BtnBlacklist_Click"
+                    Background="#FFCC0000" Foreground="White"
+                    FontWeight="SemiBold">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="BlockContact" FontSize="13" Foreground="White" />
+                    <TextBlock Text="一键拉黑未勾选" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </WrapPanel>
+
+        <!-- 卡片列表 -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="CardList">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="White" CornerRadius="8" Padding="12,12,16,12"
+                                BorderBrush="#FFE0E0E0" BorderThickness="1"
+                                Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="32" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <CheckBox Grid.Column="0"
+                                          IsChecked="{Binding IsChecked}"
+                                          VerticalAlignment="Top" Margin="4,8,0,0" />
+
+                                <ctrl:AsyncImage Grid.Column="1"
+                                                 SourceUrl="{Binding CoverUrl}"
+                                                 Width="120" Height="68"
+                                                 CornerRadius="6"
+                                                 VerticalAlignment="Top" />
+
+                                <StackPanel Grid.Column="2" Margin="12,0,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="#FF0078D4" CornerRadius="4"
+                                                Width="28" Height="22" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding Rank}"
+                                                       Foreground="White" FontSize="12"
+                                                       FontWeight="Bold"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}"
+                                                   FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="#FF1A1A1A"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="430" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding RankChangeShort}"
+                                                   FontSize="12" Foreground="#FF605E5C"
+                                                   Margin="6,2,0,0" />
+                                    </StackPanel>
+
+                                    <TextBlock Text="{Binding Bvid}" Classes="link"
+                                               FontSize="11" Margin="36,-2,0,4"
+                                               Tag="{Binding Bvid}"
+                                               PointerPressed="Bvid_Click" />
+
+                                    <StackPanel Orientation="Horizontal" Spacing="12" Margin="36,2,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <TextBlock Text="总分:" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="{Binding TotalScoreStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF0078D4" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <TextBlock Text="播放+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="{Binding DeltaViewStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <TextBlock Text="收藏+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="{Binding DeltaFavoriteStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <TextBlock Text="点赞+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="{Binding DeltaLikeStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="2">
+                                            <TextBlock Text="投币+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="{Binding DeltaCoinStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <TextBlock Text="{Binding Status}"
+                                               FontSize="11" Foreground="#FFA0A0A0"
+                                               Margin="36,4,0,0" />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

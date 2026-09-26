@@ -1,0 +1,15 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             x:Class="KRBWeekly.App"
+             RequestedThemeVariant="Light">
+    <!-- 固定浅色：页面沿用旧版白卡片/深色文字的固定配色，深浅跟随系统会导致文字不可读 -->
+
+    <Application.Styles>
+        <sty:FluentAvaloniaTheme />
+        <!-- 中文字体兜底：Inter 无 CJK 字形 -->
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI" />
+        </Style>
+    </Application.Styles>
+</Application>

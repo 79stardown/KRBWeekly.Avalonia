@@ -1,0 +1,9 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="KRBWeekly.Controls.AsyncImage">
+    <!-- 圆角直接复用 TemplatedControl.CornerRadius（绑定到本控件自身） -->
+    <Border x:Name="Root" ClipToBounds="True" Background="#FF334155"
+            CornerRadius="{Binding $parent[UserControl].CornerRadius}">
+        <Image x:Name="Img" Stretch="UniformToFill" />
+    </Border>
+</UserControl>

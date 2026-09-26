@@ -1,0 +1,17 @@
+# ===== 构建产物（可随时 dotnet build 重新生成）=====
+bin/
+obj/
+
+# ===== 运行时数据：只提交 Data\ 下的基线三件套 =====
+# history.json / whitelist.txt / blacklist.txt 要提交，其余都是本机运行痕迹
+Data/Logs/
+Data/Records/
+Data/*.backup
+Data/*.v3_original
+Data/last_results.json
+Data/manual_entries.json
+Data/search_debug*.json
+
+# ===== 本机配置 =====
+.vs/
+*.user

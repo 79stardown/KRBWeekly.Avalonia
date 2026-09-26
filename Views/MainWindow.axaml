@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="760"
+        x:Class="KRBWeekly.Views.MainWindow"
+        Title="KRBWeekly 2.0"
+        Width="1200" Height="760"
+        MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/icon.ico">
+
+    <ui:NavigationView x:Name="NavView"
+                       PaneDisplayMode="Left"
+                       OpenPaneLength="220"
+                       IsBackButtonVisible="False"
+                       IsSettingsVisible="False"
+                       SelectionChanged="NavView_SelectionChanged">
+        <ui:NavigationView.MenuItems>
+            <!-- Tag 不能叫 "Settings"：那是 FluentAvalonia 内建设置项的保留 Tag，
+                 会让 NavigationView 启动时自动选中本项而覆盖 SelectedItem=MenuItems[0] -->
+            <ui:NavigationViewItem Content="自动计算" Tag="PageAuto">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Play" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+            <ui:NavigationViewItem Content="输入-计算" Tag="PageManual">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Calculator" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+            <ui:NavigationViewItem Content="设置" Tag="PageSettings">
+                <ui:NavigationViewItem.IconSource>
+                    <ui:SymbolIconSource Symbol="Setting" />
+                </ui:NavigationViewItem.IconSource>
+            </ui:NavigationViewItem>
+        </ui:NavigationView.MenuItems>
+
+        <ContentControl x:Name="ContentHost" />
+    </ui:NavigationView>
+</Window>

@@ -1,0 +1,359 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="using:KRBWeekly.Controls"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="KRBWeekly.Views.SettingsView">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.link">
+            <Setter Property="Foreground" Value="#FF0078D4" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="TextDecorations" Value="Underline" />
+        </Style>
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#FF888888" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid Margin="24,20" RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,12">
+            <ui:SymbolIcon Symbol="Setting" FontSize="22" VerticalAlignment="Center" />
+            <TextBlock Text="设置" FontSize="24" FontWeight="Bold" />
+        </StackPanel>
+
+        <TabControl Grid.Row="1">
+
+            <!-- ===== Tab 1: 评分系数 ===== -->
+            <TabItem Header="评分系数">
+                <ScrollViewer>
+                    <StackPanel Margin="16" Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+                        <TextBlock Text="修正 A（播放）" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Classes="hint" Text="A = max(AMax − 发布天数 / ADecay, AMin)" />
+                        <WrapPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="AMax:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtAMax" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="ADecay:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtADecay" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="AMin:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtAMin" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                        </WrapPanel>
+
+                        <TextBlock Text="修正 B（收藏）" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Classes="hint" Text="B = min(新增收藏 / 新增播放 × BMultiplier, BMax)" />
+                        <WrapPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="BMultiplier:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtBMult" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="BMax:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtBMax" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                        </WrapPanel>
+
+                        <TextBlock Text="修正 C（赞币）" FontSize="14" FontWeight="SemiBold" />
+                        <TextBlock Classes="hint" Text="C = min(min(新增点赞, 新增投币) / 新增播放 × CMultiplier, CMax)" />
+                        <WrapPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="CMultiplier:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtCMult" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,8">
+                                <TextBlock Text="CMax:" FontSize="13" VerticalAlignment="Center" />
+                                <TextBox x:Name="TxtCMax" Width="90" FontFamily="Consolas" VerticalContentAlignment="Center" />
+                            </StackPanel>
+                        </WrapPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                            <Button x:Name="BtnSaveConfig"
+                                    Width="130" Height="34" Click="SaveConfig_Click"
+                                    Background="#FF0078D4" Foreground="White" FontWeight="SemiBold">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <ui:SymbolIcon Symbol="Save" FontSize="13" Foreground="White" />
+                                    <TextBlock Text="保存系数" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnResetConfig"
+                                    Width="110" Height="34" Click="ResetConfig_Click"
+                                    Background="White" Foreground="#FF1A1A1A"
+                                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <ui:SymbolIcon Symbol="Refresh" FontSize="13" />
+                                    <TextBlock Text="恢复默认" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ===== Tab 2: 黑白名单 ===== -->
+            <TabItem Header="黑白名单">
+                <Grid Margin="16" RowDefinitions="Auto,*,8,*">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
+                        <Button x:Name="BtnOpenDataFolder"
+                                Height="28" Click="BtnOpenFolder_Click"
+                                Background="White" Foreground="#FF1A1A1A"
+                                BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ui:SymbolIcon Symbol="Folder" FontSize="12" />
+                                <TextBlock Text="查看文件" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock Classes="hint" VerticalAlignment="Center"
+                                   Text="名单文件：Data\whitelist.txt / blacklist.txt" />
+                    </StackPanel>
+
+                    <!-- 白名单 -->
+                    <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="16"
+                            BorderBrush="#FFE0E0E0" BorderThickness="1">
+                        <Grid RowDefinitions="Auto,Auto,*">
+                            <StackPanel Grid.Row="0">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Accept" FontSize="16" Foreground="#FF107C10"
+                                                   VerticalAlignment="Center" />
+                                    <TextBlock Text="白名单" FontSize="18" FontWeight="Bold" Foreground="#FF107C10" />
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="白名单中的稿件不受时间/播放量过滤限制，始终参与统计" />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,0,12">
+                                <TextBox x:Name="TxtWhiteInput" Width="160" Watermark="输入 BV 号"
+                                         VerticalContentAlignment="Center" />
+                                <Button x:Name="BtnWhiteAdd"
+                                        Height="32" Click="BtnWhiteAdd_Click"
+                                        Background="#FF107C10" Foreground="White" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Add" FontSize="12" Foreground="White" />
+                                        <TextBlock Text="添加" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="WhiteList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="64,*,Auto" Margin="0,0,0,6">
+                                                <ctrl:AsyncImage Grid.Column="0" SourceUrl="{Binding CoverUrl}"
+                                                                 Width="56" Height="32" CornerRadius="4" />
+                                                <StackPanel Grid.Column="1" Margin="8,0,8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Title}" FontSize="12"
+                                                               TextTrimming="CharacterEllipsis" MaxWidth="320" />
+                                                    <TextBlock Text="{Binding Bvid}" Classes="link" FontSize="11"
+                                                               Tag="{Binding Bvid}" PointerPressed="Bvid_Click" />
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Content="删除"
+                                                        Width="56" Height="26" FontSize="11"
+                                                        Click="WhiteDelete_Click" Tag="{Binding Bvid}"
+                                                        Background="#FFCC0000" Foreground="White" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+
+                    <!-- 黑名单 -->
+                    <Border Grid.Row="3" Background="White" CornerRadius="8" Padding="16"
+                            BorderBrush="#FFE0E0E0" BorderThickness="1">
+                        <Grid RowDefinitions="Auto,Auto,*">
+                            <StackPanel Grid.Row="0">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="BlockContact" FontSize="16" Foreground="#FFCC0000"
+                                                   VerticalAlignment="Center" />
+                                    <TextBlock Text="黑名单" FontSize="18" FontWeight="Bold" Foreground="#FFCC0000" />
+                                </StackPanel>
+                                <TextBlock Classes="hint" Text="黑名单中的稿件直接排除，不参与统计" />
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,12,0,12">
+                                <TextBox x:Name="TxtBlackInput" Width="160" Watermark="输入 BV 号"
+                                         VerticalContentAlignment="Center" />
+                                <Button x:Name="BtnBlackAdd"
+                                        Height="32" Click="BtnBlackAdd_Click"
+                                        Background="#FFCC0000" Foreground="White" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Add" FontSize="12" Foreground="White" />
+                                        <TextBlock Text="添加" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="BlackList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="64,*,Auto" Margin="0,0,0,6">
+                                                <ctrl:AsyncImage Grid.Column="0" SourceUrl="{Binding CoverUrl}"
+                                                                 Width="56" Height="32" CornerRadius="4" />
+                                                <StackPanel Grid.Column="1" Margin="8,0,8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Title}" FontSize="12"
+                                                               TextTrimming="CharacterEllipsis" MaxWidth="320" />
+                                                    <TextBlock Text="{Binding Bvid}" Classes="link" FontSize="11"
+                                                               Tag="{Binding Bvid}" PointerPressed="Bvid_Click" />
+                                                </StackPanel>
+                                                <Button Grid.Column="2" Content="删除"
+                                                        Width="56" Height="26" FontSize="11"
+                                                        Click="BlackDelete_Click" Tag="{Binding Bvid}"
+                                                        Background="#FFCC0000" Foreground="White" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ===== Tab 3: 数据文件 ===== -->
+            <TabItem Header="数据文件">
+                <Grid Margin="16" RowDefinitions="Auto,Auto,Auto,*">
+                    <!-- 起算值状态 -->
+                    <Border Grid.Row="0" Background="White" CornerRadius="8" Padding="16"
+                            BorderBrush="#FFE0E0E0" BorderThickness="1" Margin="0,0,0,12">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="起算值状态" FontSize="14" FontWeight="SemiBold" />
+                            <TextBlock x:Name="TxtCurrentStatus" Text="--" FontSize="12"
+                                       Foreground="#FF605E5C" TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button x:Name="BtnBrowse"
+                                        Height="32" Click="BtnBrowse_Click"
+                                        Background="White" Foreground="#FF1A1A1A"
+                                        BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="OpenFile" FontSize="12" />
+                                        <TextBlock Text="选择 history.json" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnImport" IsEnabled="False"
+                                        Height="32" Click="BtnImport_Click"
+                                        Background="#FF0078D4" Foreground="White" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Import" FontSize="12" Foreground="White" />
+                                        <TextBlock Text="导入" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="BtnRefresh"
+                                        Height="32" Click="BtnRefresh_Click"
+                                        Background="White" Foreground="#FF1A1A1A"
+                                        BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Refresh" FontSize="12" />
+                                        <TextBlock Text="刷新" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtFileInfo" Text="" FontSize="12" Foreground="#FF107C10"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" Margin="0,0,0,8">
+                        <TextBlock x:Name="TxtFileCount" Text="共 0 个文件" FontSize="13"
+                                   Foreground="#FF605E5C" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- 文件列表 -->
+                    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="FileList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="6" Padding="12,8"
+                                            BorderBrush="#FFE0E0E0" BorderThickness="1" Margin="0,0,0,6">
+                                        <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="13" />
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <TextBlock Text="{Binding SizeStr}" FontSize="11" Foreground="#FFA0A0A0" />
+                                                    <TextBlock Text="{Binding DateStr}" FontSize="11" Foreground="#FFA0A0A0" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="恢复" Width="64" Height="28"
+                                                    FontSize="12" Margin="0,0,8,0"
+                                                    Click="Restore_Click" Tag="{Binding FilePath}"
+                                                    IsVisible="{Binding CanRestore}"
+                                                    Background="#FF0078D4" Foreground="White" />
+                                            <Button Grid.Column="2" Content="删除" Width="64" Height="28"
+                                                    FontSize="12"
+                                                    Click="DeleteFile_Click" Tag="{Binding FilePath}"
+                                                    Background="#FFCC0000" Foreground="White" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
+            <!-- ===== Tab 4: 日志查询（只读） ===== -->
+            <TabItem Header="日志查询">
+                <Grid Margin="16" RowDefinitions="Auto,140,*,Auto">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                        <Button x:Name="BtnRefreshLog"
+                                Height="30" Click="RefreshLogList_Click"
+                                Background="White" Foreground="#FF1A1A1A"
+                                BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ui:SymbolIcon Symbol="Refresh" FontSize="12" />
+                                <TextBlock Text="刷新列表" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="BtnOpenLogFolder"
+                                Height="30" Click="OpenLogFolder_Click"
+                                Background="White" Foreground="#FF1A1A1A"
+                                BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ui:SymbolIcon Symbol="Folder" FontSize="12" />
+                                <TextBlock Text="打开日志目录" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <TextBlock x:Name="TxtLogInfo" Text="" FontSize="12"
+                                   Foreground="#FF605E5C" VerticalAlignment="Center" />
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="White" CornerRadius="6"
+                            BorderBrush="#FFE0E0E0" BorderThickness="1">
+                        <ListBox x:Name="LogFileList"
+                                 SelectionChanged="LogFileList_SelectionChanged">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" />
+                                        <TextBlock Grid.Column="1" Text="{Binding SizeStr}" FontSize="11"
+                                                   Foreground="#FFA0A0A0" Margin="0,0,12,0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding DateStr}" FontSize="11"
+                                                   Foreground="#FFA0A0A0" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+
+                    <Border Grid.Row="2" Background="#FF1E1E1E" CornerRadius="6"
+                            BorderBrush="#FFE0E0E0" BorderThickness="1" Margin="0,10,0,0">
+                        <!-- 同 StatisticsView：必须显式不透明背景，否则被模板的半透明层洗灰 -->
+                        <TextBox x:Name="TxtLogViewer"
+                                 Background="#FF1E1E1E" Foreground="#FFD4D4D4"
+                                 FontFamily="Consolas" FontSize="12"
+                                 BorderThickness="0" IsReadOnly="True"
+                                 AcceptsReturn="True" TextWrapping="NoWrap"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                    </Border>
+
+                    <TextBlock Grid.Row="3" Classes="hint" Margin="0,6,0,0"
+                               Text="只读查看，不影响正在运行的统计（共享读）" />
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+    </Grid>
+</UserControl>

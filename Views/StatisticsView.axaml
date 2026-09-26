@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:FluentAvalonia.UI.Controls"
+             x:Class="KRBWeekly.Views.StatisticsView">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24,20" Spacing="12">
+            <!-- 页面标题 -->
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <ui:SymbolIcon Symbol="Play" FontSize="22" VerticalAlignment="Center" />
+                <TextBlock Text="自动计算" FontSize="24" FontWeight="Bold" />
+            </StackPanel>
+
+            <!-- 配置卡片 -->
+            <Border Background="White" CornerRadius="8" Padding="20"
+                    BorderBrush="#FFE0E0E0" BorderThickness="1">
+                <WrapPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" Spacing="6">
+                        <TextBlock Text="搜索标签:" FontSize="13" VerticalAlignment="Center" />
+                        <Border Background="#FFF0F0F0" CornerRadius="4" Padding="8,4">
+                            <TextBlock Text="&quot;KARDS金曲&quot; + 分词兜底" FontSize="13" FontFamily="Consolas" />
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" Spacing="8">
+                        <TextBlock Text="日期:" FontSize="13" VerticalAlignment="Center" />
+                        <RadioButton x:Name="RbToday" Content="当天" IsChecked="True"
+                                     GroupName="Date" VerticalAlignment="Center"
+                                     IsCheckedChanged="DateMode_Changed" />
+                        <RadioButton x:Name="RbSpecific" Content="指定"
+                                     GroupName="Date" VerticalAlignment="Center"
+                                     IsCheckedChanged="DateMode_Changed" />
+                        <DatePicker x:Name="DpSpecific" Width="130" IsEnabled="False" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TxtListStatus" Text="名单: --" FontSize="13" />
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+
+            <!-- 开始按钮 -->
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="BtnStart"
+                        Width="150" Height="36"
+                        Click="BtnStart_Click"
+                        Background="#FF0078D4" Foreground="White"
+                        FontSize="14" FontWeight="SemiBold"
+                        HorizontalContentAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ui:SymbolIcon Symbol="Play" FontSize="14" Foreground="White" />
+                        <TextBlock Text="开始统计" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <!-- 进度条 -->
+            <Grid>
+                <ProgressBar x:Name="ProgressBar" Height="6"
+                             Minimum="0" Maximum="100" Value="0"
+                             Foreground="#FF0078D4" Background="#FFE8E8E8" />
+                <TextBlock x:Name="TxtProgress" Text=""
+                           FontSize="11" Foreground="#FF605E5C"
+                           HorizontalAlignment="Right" Margin="0,8,0,0" />
+            </Grid>
+
+            <!-- 日志控制台（占主高度） -->
+            <!-- Background 必须显式给不透明色：Fluent 的 TextBox 模板内部会盖一层半透明浅色，
+                 Transparent 挡不住，会把深色底洗成灰色 -->
+            <Border Background="#FF1E1E1E" CornerRadius="8" Padding="12">
+                <TextBox x:Name="TxtLog"
+                         Background="#FF1E1E1E" Foreground="#FFD4D4D4"
+                         FontFamily="Consolas" FontSize="12"
+                         BorderThickness="0" IsReadOnly="True"
+                         AcceptsReturn="True" TextWrapping="NoWrap"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Visible"
+                         MinHeight="380" />
+            </Border>
+
+            <!-- 底部状态栏 -->
+            <Border Background="White" CornerRadius="8" Padding="12,8"
+                    BorderBrush="#FFE0E0E0" BorderThickness="1">
+                <TextBlock x:Name="TxtStatus" Text="就绪" FontSize="12" Foreground="#FF605E5C" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
