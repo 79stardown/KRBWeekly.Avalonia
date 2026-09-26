@@ -12,12 +12,12 @@
             </StackPanel>
 
             <!-- 配置卡片 -->
-            <Border Background="White" CornerRadius="8" Padding="20"
-                    BorderBrush="#FFE0E0E0" BorderThickness="1">
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                 <WrapPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,24,0" Spacing="6">
                         <TextBlock Text="搜索标签:" FontSize="13" VerticalAlignment="Center" />
-                        <Border Background="#FFF0F0F0" CornerRadius="4" Padding="8,4">
+                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="4" Padding="8,4">
                             <TextBlock Text="&quot;KARDS金曲&quot; + 分词兜底" FontSize="13" FontFamily="Consolas" />
                         </Border>
                     </StackPanel>
@@ -44,7 +44,7 @@
                 <Button x:Name="BtnStart"
                         Width="150" Height="36"
                         Click="BtnStart_Click"
-                        Background="#FF0078D4" Foreground="White"
+                        Background="{DynamicResource SystemAccentColor}" Foreground="White"
                         FontSize="14" FontWeight="SemiBold"
                         HorizontalContentAlignment="Center">
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -58,9 +58,9 @@
             <Grid>
                 <ProgressBar x:Name="ProgressBar" Height="6"
                              Minimum="0" Maximum="100" Value="0"
-                             Foreground="#FF0078D4" Background="#FFE8E8E8" />
+                             Foreground="{DynamicResource SystemAccentColor}" Background="{DynamicResource ControlFillColorSecondaryBrush}" />
                 <TextBlock x:Name="TxtProgress" Text=""
-                           FontSize="11" Foreground="#FF605E5C"
+                           FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                            HorizontalAlignment="Right" Margin="0,8,0,0" />
             </Grid>
 
@@ -79,9 +79,9 @@
             </Border>
 
             <!-- 底部状态栏 -->
-            <Border Background="White" CornerRadius="8" Padding="12,8"
-                    BorderBrush="#FFE0E0E0" BorderThickness="1">
-                <TextBlock x:Name="TxtStatus" Text="就绪" FontSize="12" Foreground="#FF605E5C" />
+            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="12,8"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                <TextBlock x:Name="TxtStatus" Text="就绪" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
             </Border>
         </StackPanel>
     </ScrollViewer>

@@ -6,7 +6,7 @@
 
     <UserControl.Styles>
         <Style Selector="TextBlock.link">
-            <Setter Property="Foreground" Value="#FF0078D4" />
+            <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="TextDecorations" Value="Underline" />
         </Style>
@@ -24,8 +24,8 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
             <Button x:Name="BtnBack"
                     Width="110" Height="32" Click="BtnBack_Click"
-                    Background="White" Foreground="#FF1A1A1A"
-                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <ui:SymbolIcon Symbol="Back" FontSize="13" />
                     <TextBlock Text="返回统计" VerticalAlignment="Center" />
@@ -37,7 +37,7 @@
 
         <!-- 记录选择 -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-            <TextBlock Text="选择记录:" FontSize="13" Foreground="#FF605E5C" VerticalAlignment="Center" />
+            <TextBlock Text="选择记录:" FontSize="13" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
             <ComboBox x:Name="CbRecords" Width="280"
                       SelectionChanged="CbRecords_SelectionChanged" />
         </StackPanel>
@@ -47,8 +47,8 @@
             <Button x:Name="BtnSelectAll"
                     Width="90" Height="32" Margin="0,0,10,0"
                     Click="BtnSelectAll_Click"
-                    Background="White" Foreground="#FF1A1A1A"
-                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <ui:SymbolIcon Symbol="Accept" FontSize="13" />
                     <TextBlock Text="全选" VerticalAlignment="Center" />
@@ -57,8 +57,8 @@
             <Button x:Name="BtnDeselectAll"
                     Width="110" Height="32" Margin="0,0,10,0"
                     Click="BtnDeselectAll_Click"
-                    Background="White" Foreground="#FF1A1A1A"
-                    BorderBrush="#FFD0D0D0" BorderThickness="1">
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <ui:SymbolIcon Symbol="Clear" FontSize="13" />
                     <TextBlock Text="取消全选" VerticalAlignment="Center" />
@@ -91,8 +91,8 @@
             <ItemsControl x:Name="CardList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="White" CornerRadius="8" Padding="12,12,16,12"
-                                BorderBrush="#FFE0E0E0" BorderThickness="1"
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="12,12,16,12"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1"
                                 Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -113,7 +113,7 @@
 
                                 <StackPanel Grid.Column="2" Margin="12,0,0,0">
                                     <StackPanel Orientation="Horizontal">
-                                        <Border Background="#FF0078D4" CornerRadius="4"
+                                        <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
                                                 Width="28" Height="22" Margin="0,0,8,0">
                                             <TextBlock Text="{Binding Rank}"
                                                        Foreground="White" FontSize="12"
@@ -123,11 +123,11 @@
                                         </Border>
                                         <TextBlock Text="{Binding Title}"
                                                    FontSize="14" FontWeight="SemiBold"
-                                                   Foreground="#FF1A1A1A"
+                                                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                                    TextTrimming="CharacterEllipsis"
                                                    MaxWidth="430" VerticalAlignment="Center" />
                                         <TextBlock Text="{Binding RankChangeShort}"
-                                                   FontSize="12" Foreground="#FF605E5C"
+                                                   FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                    Margin="6,2,0,0" />
                                     </StackPanel>
 
@@ -138,29 +138,29 @@
 
                                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="36,2,0,0">
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="总分:" FontSize="12" Foreground="#FF605E5C" />
-                                            <TextBlock Text="{Binding TotalScoreStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF0078D4" />
+                                            <TextBlock Text="总分:" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding TotalScoreStr}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="播放+" FontSize="12" Foreground="#FF605E5C" />
-                                            <TextBlock Text="{Binding DeltaViewStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                            <TextBlock Text="播放+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding DeltaViewStr}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="收藏+" FontSize="12" Foreground="#FF605E5C" />
-                                            <TextBlock Text="{Binding DeltaFavoriteStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                            <TextBlock Text="收藏+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding DeltaFavoriteStr}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="点赞+" FontSize="12" Foreground="#FF605E5C" />
-                                            <TextBlock Text="{Binding DeltaLikeStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                            <TextBlock Text="点赞+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding DeltaLikeStr}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="投币+" FontSize="12" Foreground="#FF605E5C" />
-                                            <TextBlock Text="{Binding DeltaCoinStr}" FontSize="12" FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                            <TextBlock Text="投币+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding DeltaCoinStr}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         </StackPanel>
                                     </StackPanel>
 
                                     <TextBlock Text="{Binding Status}"
-                                               FontSize="11" Foreground="#FFA0A0A0"
+                                               FontSize="11" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                                Margin="36,4,0,0" />
                                 </StackPanel>
                             </Grid>

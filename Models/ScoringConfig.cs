@@ -17,4 +17,13 @@ public class ScoringConfig
     // 修正C: min(min(like,coin)/view * 250, 50.0)
     public double CMultiplier { get; set; } = 250.0;
     public double CMax { get; set; } = 50.0;
+
+    // 计算方式："Weighted" = 修正系数（A/B/C 系数，默认）；"Simple" = 单纯相加（四项增量直接求和）
+    public string CalcMode { get; set; } = "Weighted";
+
+    // 主题色："#AARRGGBB"；空字符串 = 默认蓝 #FF0078D4
+    public string AccentColor { get; set; } = "";
+
+    // 主题模式："Light"（默认）；"Dark"
+    public string ThemeMode { get; set; } = "Light";
 }

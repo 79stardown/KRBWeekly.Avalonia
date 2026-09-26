@@ -18,12 +18,12 @@
                 <TextBlock Text="输入-计算" FontSize="24" FontWeight="Bold" />
             </StackPanel>
             <TextBlock Text="手动录入本周新增量，按与自动模式同一套公式计分，独立成榜"
-                       FontSize="12" Foreground="#FF605E5C" Margin="34,4,0,0" />
+                       FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="34,4,0,0" />
         </StackPanel>
 
         <!-- 录入表单 -->
-        <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="20"
-                BorderBrush="#FFE0E0E0" BorderThickness="1" Margin="0,0,0,12">
+        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" Margin="0,0,0,12">
             <StackPanel Spacing="12">
                 <TextBlock x:Name="TxtFormTitle" Text="新增数值组" FontSize="14" FontWeight="SemiBold" />
 
@@ -71,7 +71,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <Button x:Name="BtnAdd"
                             Width="130" Height="34" Click="BtnAdd_Click"
-                            Background="#FF0078D4" Foreground="White" FontWeight="SemiBold">
+                            Background="{DynamicResource SystemAccentColor}" Foreground="White" FontWeight="SemiBold">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <ui:SymbolIcon Symbol="Add" FontSize="13" Foreground="White" />
                             <TextBlock Text="添加条目" VerticalAlignment="Center" />
@@ -87,20 +87,20 @@
                     </Button>
                     <Button x:Name="BtnCancelEdit" Content="取消编辑" IsVisible="False"
                             Width="100" Height="34" Click="BtnCancelEdit_Click"
-                            Background="White" Foreground="#FF1A1A1A"
-                            BorderBrush="#FFD0D0D0" BorderThickness="1" />
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" />
                 </StackPanel>
 
                 <!-- 计算结果预览（沿用旧核对页的系数/分项展示） -->
-                <Border Background="#FFF7F7F7" CornerRadius="6" Padding="12"
-                        BorderBrush="#FFEDEDED" BorderThickness="1">
+                <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="12"
+                        BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1">
                     <StackPanel Orientation="Horizontal" Spacing="20">
                         <TextBlock x:Name="TxtCoefs" Text="系数 A=-- B=-- C=--"
-                                   FontSize="12" FontFamily="Consolas" Foreground="#FF605E5C" />
+                                   FontSize="12" FontFamily="Consolas" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                         <TextBlock x:Name="TxtBreakdown" Text="播放分 -- | 收藏分 -- | 赞币分 --"
-                                   FontSize="12" FontFamily="Consolas" Foreground="#FF605E5C" />
+                                   FontSize="12" FontFamily="Consolas" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                         <TextBlock x:Name="TxtPreviewTotal" Text="总分 --"
-                                   FontSize="13" FontWeight="Bold" Foreground="#FF0078D4" />
+                                   FontSize="13" FontWeight="Bold" Foreground="{DynamicResource SystemAccentColor}" />
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -109,7 +109,7 @@
         <!-- 工具栏 -->
         <WrapPanel Grid.Row="2" Margin="0,0,0,12">
             <TextBlock x:Name="TxtCount" Text="共 0 个数值组" FontSize="13"
-                       Foreground="#FF605E5C" VerticalAlignment="Center" Margin="0,0,16,0" />
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
             <Button x:Name="BtnExport"
                     Width="130" Height="32" Click="BtnExport_Click"
                     Background="#FF107C10" Foreground="White" FontWeight="SemiBold">
@@ -125,8 +125,8 @@
             <ItemsControl x:Name="EntryList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="White" CornerRadius="8" Padding="12,10,16,10"
-                                BorderBrush="#FFE0E0E0" BorderThickness="1" Margin="0,0,0,8">
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="12,10,16,10"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="40" />
@@ -134,7 +134,7 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Background="#FF0078D4" CornerRadius="4"
+                                <Border Grid.Column="0" Background="{DynamicResource SystemAccentColor}" CornerRadius="4"
                                         Width="28" Height="22" VerticalAlignment="Top" Margin="0,4,0,0">
                                     <TextBlock Text="{Binding Rank}" Foreground="White" FontSize="12"
                                                FontWeight="Bold" HorizontalAlignment="Center"
@@ -144,43 +144,43 @@
                                 <StackPanel Grid.Column="1" Margin="8,0,0,0">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
                                         <TextBlock Text="{Binding DisplayName}" FontSize="14"
-                                                   FontWeight="SemiBold" Foreground="#FF1A1A1A" />
+                                                   FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
                                         <TextBlock Text="{Binding NumberStr}" FontSize="11"
-                                                   Foreground="#FFA0A0A0" VerticalAlignment="Center" />
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Spacing="12" Margin="0,4,0,0">
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="总分:" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="总分:" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding TotalScoreStr}" FontSize="12"
-                                                       FontWeight="SemiBold" Foreground="#FF0078D4" />
+                                                       FontWeight="SemiBold" Foreground="{DynamicResource SystemAccentColor}" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="播放+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="播放+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding DeltaViewStr}" FontSize="12" FontWeight="SemiBold" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="收藏+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="收藏+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding DeltaFavoriteStr}" FontSize="12" FontWeight="SemiBold" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="点赞+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="点赞+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding DeltaLikeStr}" FontSize="12" FontWeight="SemiBold" />
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Spacing="2">
-                                            <TextBlock Text="投币+" FontSize="12" Foreground="#FF605E5C" />
+                                            <TextBlock Text="投币+" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                             <TextBlock Text="{Binding DeltaCoinStr}" FontSize="12" FontWeight="SemiBold" />
                                         </StackPanel>
                                     </StackPanel>
                                     <TextBlock Text="{Binding DetailStr}" FontSize="11"
-                                               Foreground="#FFA0A0A0" Margin="0,4,0,0" />
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" Margin="0,4,0,0" />
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
                                             VerticalAlignment="Top">
                                     <Button Content="编辑" Width="60" Height="28"
                                             Click="BtnEdit_Click" Tag="{Binding}"
-                                            Background="White" Foreground="#FF1A1A1A"
-                                            BorderBrush="#FFD0D0D0" BorderThickness="1" FontSize="12" />
+                                            Background="{DynamicResource ControlFillColorSecondaryBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" FontSize="12" />
                                     <Button Content="删除" Width="60" Height="28"
                                             Click="BtnDelete_Click" Tag="{Binding}"
                                             Background="#FFCC0000" Foreground="White" FontSize="12" />

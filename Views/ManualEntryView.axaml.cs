@@ -277,7 +277,10 @@ public partial class ManualEntryView : UserControl
 
     private void ShowPreview(ManualEntry entry)
     {
-        TxtCoefs.Text = $"系数 A={entry.CoefA:F4} B={entry.CoefB:F4} C={entry.CoefC:F4}";
+        // 标注算法：单纯相加时 A/B/C 恒为 1，不标注会和修正系数的「系数全 1」混淆
+        var mode = string.Equals(_configSvc.Load().CalcMode, "Simple", StringComparison.OrdinalIgnoreCase)
+            ? "单纯相加" : "修正系数";
+        TxtCoefs.Text = $"{mode} | 系数 A={entry.CoefA:F4} B={entry.CoefB:F4} C={entry.CoefC:F4}";
         TxtBreakdown.Text = $"播放分 {entry.PlayScore:F1} | 收藏分 {entry.FavScore:F1} | " +
                             $"赞币分 {entry.LikeCoinScore:F1}";
         TxtPreviewTotal.Text = $"总分 {entry.TotalScore:F2}";

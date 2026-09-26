@@ -100,6 +100,9 @@ public partial class StatisticsView : UserControl
         Log("==================================================");
         Log("KARDS金曲 周榜统计工具");
         Log($"统计日期: {_effectiveNow:yyyy-MM-dd}");
+        // 现取现读：本方法内的 _config 要到逐视频循环里才 Load，
+        // 用字段会打出上一轮的（或默认的）模式，日志与实际算法不符
+        Log($"计算方式: {(string.Equals(_configSvc.Load().CalcMode, "Simple", StringComparison.OrdinalIgnoreCase) ? "单纯相加" : "修正系数")}");
         Log("==================================================");
 
         // 获取只读快照（不修改实际 history）
@@ -347,7 +350,7 @@ public partial class StatisticsView : UserControl
 
     private void Log(string msg)
     {
-        // 同步写入日志文件（供「设置 → 日志查询」查看）
+        // 同步写入日志文件（供「设置 → 数据文件 → 运行日志」查看）
         LogService.Append(msg);
 
         Dispatcher.UIThread.InvokeAsync(() =>

@@ -4,7 +4,7 @@ namespace KRBWeekly.Services;
 
 /// <summary>
 /// 程序日志服务 —— 把运行日志持久化写入 Data/Logs/日志_时间戳.txt，
-/// 供「设置 → 日志查询」只读查看。线程安全，写入失败静默不阻断主流程。
+/// 供「设置 → 数据文件 → 运行日志」只读查看。线程安全，写入失败静默不阻断主流程。
 /// </summary>
 public static class LogService
 {

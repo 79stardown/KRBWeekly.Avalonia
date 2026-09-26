@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -54,34 +55,125 @@ public partial class SettingsView : UserControl
         };
     }
 
-    // ===== Tab 1: 评分系数 =====
+    // 灌两个 ComboBox 时抑制 SelectionChanged 回写（否则每次进设置页都会触发一次保存）
+    // 外观页与计算页共用这一个开关，故 LoadConfig 里一次性灌完
+    private bool _loadingTabs;
+
+    // ===== Tab 1: 外观 =====
+
+    private void LoadAppearanceTab(ScoringConfig c)
+    {
+        CbThemeMode.SelectedIndex = ThemeService.IsDark(c.ThemeMode) ? 1 : 0;
+        UpdateSwatchSelection(c.AccentColor);
+    }
+
+    /// <summary>选中色块加粗描边；AccentColor 为空表示默认蓝，故空值时高亮默认蓝色块。</summary>
+    private void UpdateSwatchSelection(string? accentHex)
+    {
+        var current = string.IsNullOrWhiteSpace(accentHex) ? ThemeService.DefaultAccentHex : accentHex;
+
+        foreach (var btn in AccentSwatches.Children.OfType<Button>())
+        {
+            var isCurrent = btn.Tag is string hex &&
+                            string.Equals(hex, current, StringComparison.OrdinalIgnoreCase);
+            btn.BorderThickness = new Thickness(isCurrent ? 3 : 1);
+        }
+
+        TxtAccentHint.Text = $"当前: {current}";
+    }
+
+    private void ThemeMode_Changed(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingTabs) return;
+        if (CbThemeMode.SelectedItem is not ComboBoxItem { Tag: string mode }) return;
+
+        var c = _configSvc.Load();
+        c.ThemeMode = mode;
+        _configSvc.Save(c);
+        ThemeService.ApplyThemeMode(mode);   // 立即切换，无需重启
+    }
+
+    private void CalcMode_Changed(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_loadingTabs) return;
+        if (CbCalcMode.SelectedItem is not ComboBoxItem { Tag: string mode }) return;
+
+        var c = _configSvc.Load();
+        c.CalcMode = mode;
+        _configSvc.Save(c);
+        UpdateCoefInputsEnabled(mode);
+    }
+
+    private void Swatch_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: string hex }) ApplyAccent(hex);
+    }
+
+    private void ResetAccent_Click(object? sender, RoutedEventArgs e) => ApplyAccent("");
+
+    /// <summary>改主题色：先落盘再应用 —— 应用失败也不至于丢设置。</summary>
+    private void ApplyAccent(string hex)
+    {
+        var c = _configSvc.Load();
+        c.AccentColor = hex;
+        _configSvc.Save(c);
+        ThemeService.ApplyAccent(hex);
+        UpdateSwatchSelection(hex);
+    }
+
+    // ===== Tab 2: 计算（计算方式 + 评分系数） =====
+
+    private void LoadCalcTab(ScoringConfig c)
+    {
+        CbCalcMode.SelectedIndex =
+            string.Equals(c.CalcMode, "Simple", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        UpdateCoefInputsEnabled(c.CalcMode);
+    }
+
+    /// <summary>单纯相加根本不看 A/B/C：置灰输入框，免得填了数字却不参与计算。</summary>
+    private void UpdateCoefInputsEnabled(string? calcMode)
+    {
+        var enabled = !string.Equals(calcMode, "Simple", StringComparison.OrdinalIgnoreCase);
+        TxtAMax.IsEnabled = TxtADecay.IsEnabled = TxtAMin.IsEnabled = enabled;
+        TxtBMult.IsEnabled = TxtBMax.IsEnabled = enabled;
+        TxtCMult.IsEnabled = TxtCMax.IsEnabled = enabled;
+    }
 
     private void LoadConfig()
     {
-        var c = _configSvc.Load();
-        TxtAMax.Text = c.AMax.ToString();
-        TxtADecay.Text = c.ADecay.ToString();
-        TxtAMin.Text = c.AMin.ToString();
-        TxtBMult.Text = c.BMultiplier.ToString();
-        TxtBMax.Text = c.BMax.ToString();
-        TxtCMult.Text = c.CMultiplier.ToString();
-        TxtCMax.Text = c.CMax.ToString();
+        _loadingTabs = true;
+        try
+        {
+            var c = _configSvc.Load();
+            TxtAMax.Text = c.AMax.ToString();
+            TxtADecay.Text = c.ADecay.ToString();
+            TxtAMin.Text = c.AMin.ToString();
+            TxtBMult.Text = c.BMultiplier.ToString();
+            TxtBMax.Text = c.BMax.ToString();
+            TxtCMult.Text = c.CMultiplier.ToString();
+            TxtCMax.Text = c.CMax.ToString();
+            LoadAppearanceTab(c);
+            LoadCalcTab(c);
+        }
+        finally
+        {
+            _loadingTabs = false;
+        }
     }
 
     private async void SaveConfig_Click(object? sender, RoutedEventArgs e)
     {
         try
         {
-            var c = new ScoringConfig
-            {
-                AMax = ParseDouble(TxtAMax.Text, 1.4),
-                ADecay = ParseDouble(TxtADecay.Text, 40),
-                AMin = ParseDouble(TxtAMin.Text, 1.0),
-                BMultiplier = ParseDouble(TxtBMult.Text, 500),
-                BMax = ParseDouble(TxtBMax.Text, 40),
-                CMultiplier = ParseDouble(TxtCMult.Text, 250),
-                CMax = ParseDouble(TxtCMax.Text, 50),
-            };
+            // 先 Load 再改系数：直接 new 会把「外观」页的主题色/主题模式静默冲回默认
+            var c = _configSvc.Load();
+            c.AMax = ParseDouble(TxtAMax.Text, 1.4);
+            c.ADecay = ParseDouble(TxtADecay.Text, 40);
+            c.AMin = ParseDouble(TxtAMin.Text, 1.0);
+            c.BMultiplier = ParseDouble(TxtBMult.Text, 500);
+            c.BMax = ParseDouble(TxtBMax.Text, 40);
+            c.CMultiplier = ParseDouble(TxtCMult.Text, 250);
+            c.CMax = ParseDouble(TxtCMax.Text, 50);
             _configSvc.Save(c);
             await UiDialog.InfoAsync("成功", "系数已保存，下次统计/计算生效。");
         }
@@ -93,7 +185,14 @@ public partial class SettingsView : UserControl
 
     private async void ResetConfig_Click(object? sender, RoutedEventArgs e)
     {
-        var d = new ScoringConfig();
+        // 只重置 7 个系数：同页的计算方式、以及「外观」页的主题设置都不该被这个按钮带走
+        var cur = _configSvc.Load();
+        var d = new ScoringConfig
+        {
+            CalcMode = cur.CalcMode,
+            AccentColor = cur.AccentColor,
+            ThemeMode = cur.ThemeMode,
+        };
         _configSvc.Save(d);
         LoadConfig();
         await UiDialog.InfoAsync("完成", "已恢复默认系数。");
@@ -102,7 +201,7 @@ public partial class SettingsView : UserControl
     private static double ParseDouble(string? s, double defaultValue)
         => double.TryParse(s, out var v) ? v : defaultValue;
 
-    // ===== Tab 2: 黑白名单 =====
+    // ===== Tab 3: 黑白名单 =====
 
     private async Task LoadListsAsync()
     {
@@ -221,7 +320,7 @@ public partial class SettingsView : UserControl
     private void BtnOpenFolder_Click(object? sender, RoutedEventArgs e)
         => Process.Start(new ProcessStartInfo(_dataDir) { UseShellExecute = true });
 
-    // ===== Tab 3: 数据文件 =====
+    // ===== Tab 4: 数据文件（起算值备份 + 运行日志） =====
 
     private void RefreshStatus()
     {
@@ -401,7 +500,7 @@ public partial class SettingsView : UserControl
         RefreshFileList();
     }
 
-    // ===== Tab 4: 日志查询（只读） =====
+    // ===== 运行日志（只读，已并入「数据文件」页） =====
 
     private void RefreshLogList()
     {

@@ -2,6 +2,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using KRBWeekly.Helpers;
 using KRBWeekly.Services;
 using KRBWeekly.Views;
 
@@ -29,6 +30,11 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // 外观先于窗口创建应用（窗口还没构造，切主题不会闪一下）
+            var cfg = new ConfigService(Path.Combine(exeDir, "Data")).Load();
+            ThemeService.ApplyThemeMode(cfg.ThemeMode);
+            ThemeService.ApplyAccent(cfg.AccentColor);
+
             desktop.MainWindow = new MainWindow();
         }
 
