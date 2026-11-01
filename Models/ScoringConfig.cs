@@ -1,7 +1,8 @@
 namespace KRBWeekly.Models;
 
 /// <summary>
-/// 计分修正系数配置（可修改，保存到 Data/settings.json）
+/// settings.json 的完整模型：评分系数 + 搜索设置 + 筛选规则。
+/// （类名沿用 2.0 的 ScoringConfig，避免改动既有配置文件的字段名与调用点）
 /// </summary>
 public class ScoringConfig
 {
@@ -26,4 +27,20 @@ public class ScoringConfig
 
     // 主题模式："Light"（默认）；"Dark"
     public string ThemeMode { get; set; } = "Light";
+
+    // ===== 自动计算：搜索 =====
+
+    /// <summary>
+    /// 搜索标签（关键词）。默认 "KARDS金曲"。
+    /// 实际会跑两轮：轮1 加引号做精确短语；轮2 不加引号做分词兜底。
+    /// </summary>
+    public string SearchKeyword { get; set; } = "KARDS金曲";
+
+    // ===== 自动计算：筛选规则集 =====
+
+    /// <summary>
+    /// 自动筛选规则集。旧版 settings.json 没有这一项时反序列化会保留默认值
+    /// （即 A/B/C/D 四级过滤表），因此升级后行为不变。
+    /// </summary>
+    public FilterRuleSet FilterRules { get; set; } = FilterRuleSet.CreateDefault();
 }

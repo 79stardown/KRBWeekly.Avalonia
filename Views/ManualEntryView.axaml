@@ -110,6 +110,16 @@
         <WrapPanel Grid.Row="2" Margin="0,0,0,12">
             <TextBlock x:Name="TxtCount" Text="共 0 个数值组" FontSize="13"
                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <Button x:Name="BtnImportTable"
+                    Width="130" Height="32" Margin="0,0,10,0" Click="BtnImportTable_Click"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" FontSize="12">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="OpenFile" FontSize="13" />
+                    <TextBlock Text="导入表格" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
             <Button x:Name="BtnExport"
                     Width="130" Height="32" Click="BtnExport_Click"
                     Background="#FF107C10" Foreground="White" FontWeight="SemiBold">

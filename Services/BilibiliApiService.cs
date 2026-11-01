@@ -104,9 +104,14 @@ public class BilibiliApiService
     /// <summary>
     /// 多轮搜索编排 —— 按轮次依次搜索（跨轮去重），合并返回全部候选视频
     /// </summary>
+    /// <summary>本次搜索/取详情过程中是否撞上过 -412 风控（供上层弹提示用）</summary>
+    public bool RateLimited { get; private set; }
+
     public async Task<List<VideoInfo>> SearchVideosAsync(
         IReadOnlyList<SearchRound> rounds, Action<string>? logCallback = null)
     {
+        RateLimited = false;
+
         // 先确保有 Cookie
         await InitCookiesAsync(logCallback);
         if (!_cookieInitialized)
@@ -219,6 +224,7 @@ public class BilibiliApiService
                     break;
 
                 case PageOutcome.AbortRound:
+                    RateLimited = true;
                     stopReason = "触发风控 -412";
                     logCallback?.Invoke("   [!] 触发 B 站风控(-412)，本轮提前中止，建议稍后重试或更换网络");
                     roundEnd = true;
@@ -382,6 +388,7 @@ public class BilibiliApiService
 
                 if (code == -412)
                 {
+                    RateLimited = true;
                     // 风控：等待较长时间后重试
                     if (attempt <= maxRetries)
                     {

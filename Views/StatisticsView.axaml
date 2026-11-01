@@ -14,29 +14,37 @@
             <!-- 配置卡片 -->
             <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="20"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                <WrapPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" Spacing="6">
-                        <TextBlock Text="搜索标签:" FontSize="13" VerticalAlignment="Center" />
-                        <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="4" Padding="8,4">
-                            <TextBlock Text="&quot;KARDS金曲&quot; + 分词兜底" FontSize="13" FontFamily="Consolas" />
-                        </Border>
-                    </StackPanel>
+                <StackPanel Spacing="8">
+                    <WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,8" Spacing="6">
+                            <TextBlock Text="搜索标签:" FontSize="13" VerticalAlignment="Center" />
+                            <TextBox x:Name="TxtSearchTag" Width="210" FontFamily="Consolas"
+                                     VerticalContentAlignment="Center" Watermark="如 KARDS金曲" />
+                            <TextBlock x:Name="TxtTagHint" Text="两轮：精确短语 + 分词兜底"
+                                       FontSize="11" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                        </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,24,0" Spacing="8">
-                        <TextBlock Text="日期:" FontSize="13" VerticalAlignment="Center" />
-                        <RadioButton x:Name="RbToday" Content="当天" IsChecked="True"
-                                     GroupName="Date" VerticalAlignment="Center"
-                                     IsCheckedChanged="DateMode_Changed" />
-                        <RadioButton x:Name="RbSpecific" Content="指定"
-                                     GroupName="Date" VerticalAlignment="Center"
-                                     IsCheckedChanged="DateMode_Changed" />
-                        <DatePicker x:Name="DpSpecific" Width="130" IsEnabled="False" />
-                    </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,24,8" Spacing="8">
+                            <TextBlock Text="日期:" FontSize="13" VerticalAlignment="Center" />
+                            <RadioButton x:Name="RbToday" Content="当天" IsChecked="True"
+                                         GroupName="Date" VerticalAlignment="Center"
+                                         IsCheckedChanged="DateMode_Changed" />
+                            <RadioButton x:Name="RbSpecific" Content="指定"
+                                         GroupName="Date" VerticalAlignment="Center"
+                                         IsCheckedChanged="DateMode_Changed" />
+                            <DatePicker x:Name="DpSpecific" Width="130" IsEnabled="False" />
+                        </StackPanel>
 
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="TxtListStatus" Text="名单: --" FontSize="13" />
-                    </StackPanel>
-                </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock x:Name="TxtListStatus" Text="名单: --" FontSize="13" />
+                        </StackPanel>
+                    </WrapPanel>
+
+                    <TextBlock x:Name="TxtRuleStatus" Text="筛选规则: --" FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
             </Border>
 
             <!-- 开始按钮 -->

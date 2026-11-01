@@ -22,9 +22,31 @@ public class HistoryService
         WriteIndented = true
     };
 
-    public HistoryService(string dataDir)
+    /// <summary>
+    /// 按搜索标签取对应的起算值文件：Data\History\&lt;标签&gt;.json
+    /// （不同标签各存一份，互不影响；旧版单文件由 DataScope.MigrateLegacy 迁移）
+    /// </summary>
+    public HistoryService(string dataDir, string? scope)
     {
-        _filePath = Path.Combine(dataDir, "history.json");
+        _filePath = DataScope.HistoryFile(dataDir, scope);
+    }
+
+    public string FilePath => _filePath;
+
+    /// <summary>只读文件数一下条目数；文件不存在返回 0，解析失败返回 -1</summary>
+    public static int CountEntries(string filePath)
+    {
+        try
+        {
+            if (!File.Exists(filePath)) return 0;
+            var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
+            var dict = JsonSerializer.Deserialize<Dictionary<string, HistoryEntry>>(json, JsonOpts);
+            return dict?.Count ?? 0;
+        }
+        catch
+        {
+            return -1;
+        }
     }
 
     public Dictionary<string, HistoryEntry> History => _history;
@@ -111,6 +133,9 @@ public class HistoryService
         }
 
         var json = JsonSerializer.Serialize(_history, JsonOpts);
+        var dir = Path.GetDirectoryName(_filePath);
+        if (!string.IsNullOrEmpty(dir))
+            Directory.CreateDirectory(dir);
         File.WriteAllText(_filePath, json, System.Text.Encoding.UTF8);
     }
 

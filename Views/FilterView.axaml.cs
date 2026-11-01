@@ -15,7 +15,8 @@ namespace KRBWeekly.Views;
 
 public partial class FilterView : UserControl
 {
-    private readonly string _recordsDir;
+    private readonly string _dataDir;
+    private readonly ConfigService _configSvc;
     private readonly ExportService _exportSvc;
     private List<VideoInfo> _allResults = new();
 
@@ -30,11 +31,16 @@ public partial class FilterView : UserControl
 
         var exeDir = Path.GetDirectoryName(Environment.ProcessPath)
                      ?? AppContext.BaseDirectory;
-        _recordsDir = Path.Combine(exeDir, "Data", "Records");
+        _dataDir = Path.Combine(exeDir, "Data");
+        _configSvc = new ConfigService(_dataDir);
         _exportSvc = new ExportService();
 
         Loaded += (_, _) => LoadRecordList();
     }
+
+    /// <summary>记录按搜索标签隔离：只列当前标签的存档</summary>
+    private string CurrentRecordsDir()
+        => DataScope.RecordsDirectory(_dataDir, _configSvc.Load().SearchKeyword);
 
     /// <summary>刷新记录下拉并自动选中最新一条（统计完成自动切换后调用）</summary>
     public void SelectNewestRecord()
@@ -58,11 +64,12 @@ public partial class FilterView : UserControl
         CbRecords.Items.Clear();
         CbRecords.Items.Add("-- 请选择一次记录 --");
 
-        if (!Directory.Exists(_recordsDir))
+        var recordsDir = CurrentRecordsDir();
+        if (!Directory.Exists(recordsDir))
             return;
 
-        // 列出所有记录文件，按时间倒序
-        var files = Directory.GetFiles(_recordsDir, "记录_*.json")
+        // 列出当前标签的全部记录文件，按时间倒序
+        var files = Directory.GetFiles(recordsDir, "记录_*.json")
             .OrderByDescending(f => f)
             .ToList();
 
@@ -91,7 +98,7 @@ public partial class FilterView : UserControl
         if (string.IsNullOrEmpty(selected)) return;
 
         var fileName = "记录_" + selected!.Replace(" ", "_") + ".json";
-        var filePath = Path.Combine(_recordsDir, fileName);
+        var filePath = Path.Combine(CurrentRecordsDir(), fileName);
 
         if (!File.Exists(filePath))
         {

@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using KRBWeekly.Helpers;
 using KRBWeekly.Models;
 using KRBWeekly.Services;
@@ -220,6 +221,90 @@ public partial class ManualEntryView : UserControl
         }
     }
 
+    /// <summary>
+    /// 导入表格：选文件 → 列映射 → 逐行按当前系数计分并追加为数值组。
+    /// 只有整表都解析不出数字时才完全不动现有条目。
+    /// </summary>
+    private async void BtnImportTable_Click(object? sender, RoutedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "选择要导入的表格",
+            AllowMultiple = false,
+            FileTypeFilter = new[]
+            {
+                new FilePickerFileType("表格文件") { Patterns = new[] { "*.xlsx", "*.csv", "*.tsv" } },
+                new FilePickerFileType("所有文件") { Patterns = new[] { "*" } }
+            }
+        });
+
+        var path = files.FirstOrDefault()?.TryGetLocalPath();
+        if (string.IsNullOrEmpty(path)) return;
+
+        TableData table;
+        try
+        {
+            table = TableImportService.Read(path);
+        }
+        catch (Exception ex)
+        {
+            await UiDialog.ErrorAsync("读取失败", ex.Message);
+            return;
+        }
+
+        if (table.Rows.Count == 0)
+        {
+            await UiDialog.WarnAsync("没有数据", "这个表格里只有表头、没有数据行。");
+            return;
+        }
+
+        var dlg = new ImportTableWindow(table, Path.GetFileName(path));
+        bool ok;
+        try
+        {
+            ok = await dlg.ShowDialog<bool>(owner);
+        }
+        catch (Exception ex)
+        {
+            await UiDialog.ErrorAsync("导入失败", ex.Message);
+            return;
+        }
+        if (!ok) return;
+
+        var config = _configSvc.Load();
+        var map = dlg.Mapping;
+        var startNumber = dlg.ClearExisting ? 1 : _nextNumber;
+
+        var (pending, skipped) = TableImportService.BuildEntries(table, map, config, startNumber);
+
+        if (pending.Count == 0)
+        {
+            await UiDialog.WarnAsync("没有可导入的行",
+                $"共 {table.Rows.Count} 行，没有一个能解析出数字。请检查列映射是否对错了列。");
+            return;
+        }
+
+        if (dlg.ClearExisting)
+            _entries.Clear();
+
+        foreach (var entry in pending)
+            _entries.Add(entry);
+        _nextNumber = startNumber + pending.Count;
+
+        _entrySvc.Save(_entries, _nextNumber);
+        LoadEntries();
+        ResetForm();
+
+        var msg = $"已从「{table.SourceName}」导入 {pending.Count} 组并完成计分。";
+        if (skipped > 0)
+            msg += $"\n\n跳过 {skipped} 行：这些行的数值列不是数字。";
+        if (dlg.ClearExisting)
+            msg += "\n\n导入前的手动条目已按勾选清空。";
+        await UiDialog.InfoAsync("导入完成", msg);
+    }
+
     /// <summary>读取表单并校验；失败弹提示并返回 false</summary>
     private bool TryReadForm(out long view, out long fav, out long like, out long coin, out double? days)
     {
@@ -259,9 +344,9 @@ public partial class ManualEntryView : UserControl
     }
 
     /// <summary>按当前系数配置计分（与自动模式同一套公式）</summary>
-    private void ApplyScore(ManualEntry entry)
+    private void ApplyScore(ManualEntry entry, ScoringConfig? config = null)
     {
-        var config = _configSvc.Load();
+        config ??= _configSvc.Load();
         var days = entry.PublishDays is > 0 ? entry.PublishDays.Value : NoDiscountDays;
         var r = ScoreCalculator.CalcScore(
             entry.DeltaView, entry.DeltaFavorite, entry.DeltaLike, entry.DeltaCoin, days, config);

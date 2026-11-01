@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        x:Class="KRBWeekly.Views.ImportTableWindow"
+        Title="导入表格"
+        Width="760" Height="700"
+        MinWidth="640" MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Margin="20" RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- 文件信息 -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <ui:SymbolIcon Symbol="OpenFile" FontSize="20" VerticalAlignment="Center" />
+                <TextBlock Text="导入表格" FontSize="20" FontWeight="Bold" />
+            </StackPanel>
+            <TextBlock x:Name="TxtFile" Text="--" FontSize="13" FontWeight="SemiBold"
+                       TextTrimming="CharacterEllipsis" Margin="30,2,0,0" />
+            <TextBlock x:Name="TxtSummary" Text="" FontSize="12"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="30,0,0,0" />
+        </StackPanel>
+
+        <!-- 列映射 -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8" Padding="16,12" Margin="0,0,0,12"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+            <StackPanel Spacing="10">
+                <TextBlock Text="把需要的数值对应到表格里的列（播放必选，其余不选按 0 计）"
+                           FontSize="13" FontWeight="SemiBold" />
+                <StackPanel x:Name="MapPanel" Spacing="8" />
+                <Border Background="{DynamicResource ControlFillColorSecondaryBrush}" CornerRadius="6" Padding="10,8">
+                    <CheckBox x:Name="ChkClear" Content="导入前清空现有的手动条目" FontSize="12" />
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- 预览 -->
+        <Border Grid.Row="2" Background="#FF1E1E1E" CornerRadius="8" Padding="10" Margin="0,0,0,12">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="TxtPreview" Text="--"
+                           FontFamily="Consolas" FontSize="12" Foreground="#FFD4D4D4"
+                           TextWrapping="NoWrap" />
+            </ScrollViewer>
+        </Border>
+
+        <!-- 按钮 -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button Content="取消" Width="90" Height="34" Click="Cancel_Click"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" />
+            <Button x:Name="BtnOk" Width="120" Height="34" Click="Ok_Click"
+                    Background="{DynamicResource SystemAccentColor}" Foreground="White" FontWeight="SemiBold">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ui:SymbolIcon Symbol="Import" FontSize="13" Foreground="White" />
+                    <TextBlock Text="导入并计算" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

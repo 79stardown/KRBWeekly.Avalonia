@@ -32,6 +32,10 @@ public partial class App : Application
         {
             // 外观先于窗口创建应用（窗口还没构造，切主题不会闪一下）
             var cfg = new ConfigService(Path.Combine(exeDir, "Data")).Load();
+
+            // 起算值/记录按搜索标签隔离：升级后首次运行把旧版单文件迁到当前标签
+            DataScope.MigrateLegacy(Path.Combine(exeDir, "Data"), cfg.SearchKeyword);
+
             ThemeService.ApplyThemeMode(cfg.ThemeMode);
             ThemeService.ApplyAccent(cfg.AccentColor);
 

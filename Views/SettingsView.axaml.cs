@@ -24,6 +24,7 @@ public partial class SettingsView : UserControl
     public ObservableCollection<FileEntry> LogEntries { get; } = new();
     public ObservableCollection<ListEntry> WhiteEntries { get; } = new();
     public ObservableCollection<ListEntry> BlackEntries { get; } = new();
+    public ObservableCollection<RuleGroupVm> RuleGroups { get; } = new();
 
     public SettingsView()
     {
@@ -44,6 +45,7 @@ public partial class SettingsView : UserControl
         LogFileList.ItemsSource = LogEntries;
         WhiteList.ItemsSource = WhiteEntries;
         BlackList.ItemsSource = BlackEntries;
+        RuleGroupList.ItemsSource = RuleGroups;
 
         Loaded += async (_, _) =>
         {
@@ -154,6 +156,7 @@ public partial class SettingsView : UserControl
             TxtCMax.Text = c.CMax.ToString();
             LoadAppearanceTab(c);
             LoadCalcTab(c);
+            LoadRulesTab(c);
         }
         finally
         {
@@ -185,13 +188,16 @@ public partial class SettingsView : UserControl
 
     private async void ResetConfig_Click(object? sender, RoutedEventArgs e)
     {
-        // 只重置 7 个系数：同页的计算方式、以及「外观」页的主题设置都不该被这个按钮带走
+        // 只重置 7 个系数：同页的计算方式、「外观」页的主题设置、
+        // 以及搜索标签/筛选规则都不该被这个按钮带走
         var cur = _configSvc.Load();
         var d = new ScoringConfig
         {
             CalcMode = cur.CalcMode,
             AccentColor = cur.AccentColor,
             ThemeMode = cur.ThemeMode,
+            SearchKeyword = cur.SearchKeyword,
+            FilterRules = cur.FilterRules,
         };
         _configSvc.Save(d);
         LoadConfig();
@@ -200,6 +206,172 @@ public partial class SettingsView : UserControl
 
     private static double ParseDouble(string? s, double defaultValue)
         => double.TryParse(s, out var v) ? v : defaultValue;
+
+    // ===== Tab 2 下半部分: 筛选规则（已并入「计算与统计」） =====
+
+    /// <summary>组间关系：true = 全部满足（All），false = 任一满足（Any）</summary>
+    private bool _matchAll;
+
+    private void LoadRulesTab(ScoringConfig c)
+    {
+        RuleGroups.Clear();
+
+        var rules = c.FilterRules ?? FilterRuleSet.CreateDefault();
+        TglRulesEnabled.IsChecked = rules.Enabled;
+        _matchAll = string.Equals(rules.MatchMode, FilterMatch.All, StringComparison.OrdinalIgnoreCase);
+        ApplySetModeToggles();
+
+        foreach (var g in rules.Groups)
+            RuleGroups.Add(RuleGroupVm.FromModel(g));
+
+        RenumberGroups();
+        UpdateRuleHint();
+    }
+
+    /// <summary>「组间」两个分段按钮的选中态跟 _matchAll 走（代码控制，避免 ToggleButton 互相取消）</summary>
+    private void ApplySetModeToggles()
+    {
+        TglSetAny.IsChecked = !_matchAll;
+        TglSetAll.IsChecked = _matchAll;
+    }
+
+    private void SetModeAny_Click(object? sender, RoutedEventArgs e)
+    {
+        _matchAll = false;
+        ApplySetModeToggles();
+        UpdateRuleHint();
+    }
+
+    private void SetModeAll_Click(object? sender, RoutedEventArgs e)
+    {
+        _matchAll = true;
+        ApplySetModeToggles();
+        UpdateRuleHint();
+    }
+
+    /// <summary>组标题跟着序号走：删掉中间一组后不留「规则组 1 / 3」这种空洞</summary>
+    private void RenumberGroups()
+    {
+        for (int i = 0; i < RuleGroups.Count; i++)
+            RuleGroups[i].Title = $"规则组 {i + 1}";
+    }
+
+    private void UpdateRuleHint()
+    {
+        if (TxtRuleHint == null) return;
+        var enabled = TglRulesEnabled.IsChecked == true;
+        var active = RuleGroups.Count(g => g.Enabled && g.Rules.Count > 0);
+        var mode = _matchAll ? "全部满足" : "任一满足";
+
+        TxtRuleHint.Text = enabled
+            ? $"编辑中：{active} 个规则组生效（共 {RuleGroups.Count} 组，组间{mode}）。改动后需点「保存」才会生效。"
+            : "规则集已关闭：不按内容筛选，仅黑白名单生效。改动后需点「保存」才会生效。";
+    }
+
+    private void RuleToggle_Changed(object? sender, RoutedEventArgs e) => UpdateRuleHint();
+
+    private void AddGroup_Click(object? sender, RoutedEventArgs e)
+    {
+        var g = new RuleGroupVm();
+        // 新组默认给一条「播放量 ≥ 0」，避免空组被当成无效组
+        g.Rules.Add(new RuleVm { FieldIndex = FilterField.IndexOf(FilterField.View), MinText = "0" });
+        RuleGroups.Add(g);
+        RenumberGroups();
+        UpdateRuleHint();
+    }
+
+    private void CopyGroup_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: RuleGroupVm g }) return;
+
+        var index = RuleGroups.IndexOf(g);
+        RuleGroups.Insert(index >= 0 ? index + 1 : RuleGroups.Count, g.Clone());
+        RenumberGroups();
+        UpdateRuleHint();
+    }
+
+    private void DeleteGroup_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: RuleGroupVm g }) return;
+        RuleGroups.Remove(g);
+        RenumberGroups();
+        UpdateRuleHint();
+    }
+
+    private void AddRule_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: RuleGroupVm g }) return;
+        g.Rules.Add(new RuleVm { FieldIndex = FilterField.IndexOf(FilterField.View), MinText = "0" });
+        UpdateRuleHint();
+    }
+
+    private void DeleteRule_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: RuleVm rule }) return;
+        foreach (var g in RuleGroups)
+            if (g.Rules.Remove(rule)) break;
+        UpdateRuleHint();
+    }
+
+    private async void SaveRules_Click(object? sender, RoutedEventArgs e)
+    {
+        var set = new FilterRuleSet
+        {
+            Enabled = TglRulesEnabled.IsChecked == true,
+            MatchMode = _matchAll ? FilterMatch.All : FilterMatch.Any,
+            Groups = new List<FilterRuleGroup>(),
+        };
+
+        for (int gi = 0; gi < RuleGroups.Count; gi++)
+        {
+            var gvm = RuleGroups[gi];
+            var group = new FilterRuleGroup
+            {
+                Enabled = gvm.Enabled,
+                MatchMode = gvm.MatchModeIndex == 0 ? FilterMatch.Any : FilterMatch.All,
+            };
+
+            for (int ri = 0; ri < gvm.Rules.Count; ri++)
+            {
+                if (!gvm.Rules[ri].TryToModel(out var rule, out var error))
+                {
+                    await UiDialog.WarnAsync("规则有误", $"规则组 {gi + 1} 第 {ri + 1} 条条件：{error}");
+                    return;
+                }
+                group.Rules.Add(rule);
+            }
+
+            set.Groups.Add(group);
+        }
+
+        if (set.Groups.Count == 0)
+        {
+            var ok = await UiDialog.ConfirmAsync("规则集为空",
+                "当前没有任何规则组，保存后等于不做内容筛选（所有视频直接进入计分）。确定保存？");
+            if (!ok) return;
+        }
+
+        var c = _configSvc.Load();
+        c.FilterRules = set;
+        _configSvc.Save(c);
+
+        UpdateRuleHint();
+        await UiDialog.InfoAsync("已保存", $"筛选规则已保存（{set.Summary()}），下次统计生效。");
+    }
+
+    private async void ResetRules_Click(object? sender, RoutedEventArgs e)
+    {
+        var ok = await UiDialog.ConfirmAsync("恢复默认规则",
+            "将把筛选规则恢复为默认的 A/B/C/D 四级过滤表。\n\n这会覆盖当前编辑的规则，继续？");
+        if (!ok) return;
+
+        var c = _configSvc.Load();
+        c.FilterRules = FilterRuleSet.CreateDefault();
+        _configSvc.Save(c);
+
+        LoadRulesTab(c);
+        await UiDialog.InfoAsync("完成", "已恢复默认筛选规则，下次统计生效。");
+    }
 
     // ===== Tab 3: 黑白名单 =====
 
@@ -322,22 +494,33 @@ public partial class SettingsView : UserControl
 
     // ===== Tab 4: 数据文件（起算值备份 + 运行日志） =====
 
+    /// <summary>当前搜索标签：起算值与记录都按标签隔离存放</summary>
+    private string CurrentTag()
+    {
+        try { return _configSvc.Load().SearchKeyword; }
+        catch { return ""; }
+    }
+
+    private string CurrentHistoryFile => DataScope.HistoryFile(_dataDir, CurrentTag());
+
     private void RefreshStatus()
     {
-        var historyFile = Path.Combine(_dataDir, "history.json");
+        var tag = CurrentTag();
+        var historyFile = CurrentHistoryFile;
+
         if (File.Exists(historyFile))
         {
             var info = new FileInfo(historyFile);
-            var svc = new HistoryService(_dataDir);
-            svc.LoadHistory();
-            TxtCurrentStatus.Text = $"[OK] history.json 存在 | " +
+            var count = HistoryService.CountEntries(historyFile);
+            TxtCurrentStatus.Text = $"[OK] 标签「{tag}」 | History/{Path.GetFileName(historyFile)} | " +
                                     $"文件大小: {info.Length / 1024} KB | " +
-                                    $"视频数: {svc.History.Count} | " +
+                                    $"视频数: {(count < 0 ? "?" : count)} | " +
                                     $"最后修改: {info.LastWriteTime:yyyy-MM-dd HH:mm}";
         }
         else
         {
-            TxtCurrentStatus.Text = "[!] history.json 不存在（尚未保存过起算值）";
+            TxtCurrentStatus.Text = $"[!] 标签「{tag}」还没有起算值" +
+                                    $"（History/{Path.GetFileName(historyFile)} 不存在）";
         }
     }
 
@@ -345,21 +528,31 @@ public partial class SettingsView : UserControl
     {
         FileEntries.Clear();
 
-        var files = new List<string>();
-        files.AddRange(Directory.GetFiles(_dataDir, "history.json*")
-            .Where(f => !f.EndsWith(".backup.old")));
+        var tag = CurrentTag();
+        var historyFile = CurrentHistoryFile;
+        var historyDir = Path.GetDirectoryName(historyFile);
+        var historyName = Path.GetFileName(historyFile);
 
-        var recordsDir = Path.Combine(_dataDir, "Records");
+        var files = new List<string>();
+        if (!string.IsNullOrEmpty(historyDir) && Directory.Exists(historyDir))
+        {
+            files.AddRange(Directory.GetFiles(historyDir, historyName + "*")
+                .Where(f => !f.EndsWith(".backup.old")));
+        }
+
+        var recordsDir = DataScope.RecordsDirectory(_dataDir, tag);
         if (Directory.Exists(recordsDir))
             files.AddRange(Directory.GetFiles(recordsDir, "*.json"));
 
         foreach (var f in files.OrderByDescending(f => new FileInfo(f).LastWriteTime))
         {
             var info = new FileInfo(f);
-            var isHistory = Path.GetFileName(f).StartsWith("history.json");
-            var displayName = f.Contains("Records")
-                ? "" + Path.GetFileName(f)
-                : (Path.GetFileName(f) == "history.json" ? "history.json (当前)" : "" + Path.GetFileName(f));
+            var fileName = Path.GetFileName(f);
+            var isHistory = fileName.StartsWith(historyName);
+
+            var displayName = isHistory
+                ? (fileName == historyName ? $"{fileName}（当前 · 标签「{tag}」）" : $"备份 · {fileName}")
+                : $"记录 · {fileName}";
 
             FileEntries.Add(new FileEntry
             {
@@ -367,11 +560,11 @@ public partial class SettingsView : UserControl
                 DisplayName = displayName,
                 SizeStr = FormatSize(info.Length),
                 DateStr = info.LastWriteTime.ToString("yyyy-MM-dd HH:mm"),
-                CanRestore = isHistory && Path.GetFileName(f) != "history.json"
+                CanRestore = isHistory && fileName != historyName
             });
         }
 
-        TxtFileCount.Text = $"共 {FileEntries.Count} 个文件";
+        TxtFileCount.Text = $"共 {FileEntries.Count} 个文件（标签「{tag}」）";
     }
 
     private async void Restore_Click(object? sender, RoutedEventArgs e)
@@ -380,13 +573,16 @@ public partial class SettingsView : UserControl
         if (!File.Exists(filePath)) return;
 
         var ok = await UiDialog.ConfirmAsync("确认恢复",
-            $"确认用此文件恢复当前的 history.json？\n\n{Path.GetFileName(filePath)}\n\n" +
-            "当前 history.json 将被备份为 .backup。");
+            $"确认用此文件恢复当前标签「{CurrentTag()}」的起算值？\n\n{Path.GetFileName(filePath)}\n\n" +
+            "当前文件将被备份为 .backup。");
         if (!ok) return;
 
         try
         {
-            var dest = Path.Combine(_dataDir, "history.json");
+            var dest = CurrentHistoryFile;
+            var destDir = Path.GetDirectoryName(dest);
+            if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
+
             if (File.Exists(dest))
                 File.Copy(dest, dest + ".backup", true);
             File.Copy(filePath, dest, true);
@@ -448,9 +644,15 @@ public partial class SettingsView : UserControl
 
         try
         {
-            var tempSvc = new HistoryService(Path.GetDirectoryName(localPath)!);
-            tempSvc.LoadHistory();
-            TxtFileInfo.Text += $" | 包含 {tempSvc.History.Count} 个视频";
+            var count = HistoryService.CountEntries(localPath);
+            if (count < 0)
+            {
+                TxtFileInfo.Text += " | [!] 无法解析: 不是有效的起算值 JSON";
+                BtnImport.IsEnabled = false;
+                return;
+            }
+
+            TxtFileInfo.Text += $" | 包含 {count} 个视频";
             BtnImport.IsEnabled = true;
         }
         catch (Exception ex)
@@ -469,13 +671,16 @@ public partial class SettingsView : UserControl
         }
 
         var ok = await UiDialog.ConfirmAsync("确认导入",
-            $"确认用选中文件替换当前的 history.json？\n\n文件: {_selectedFile}\n\n" +
+            $"确认用选中文件替换当前标签「{CurrentTag()}」的起算值？\n\n文件: {_selectedFile}\n\n" +
             "当前文件会被备份为 .backup。");
         if (!ok) return;
 
         try
         {
-            var destPath = Path.Combine(_dataDir, "history.json");
+            var destPath = CurrentHistoryFile;
+            var destDir = Path.GetDirectoryName(destPath);
+            if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
+
             if (File.Exists(destPath))
                 File.Copy(destPath, destPath + ".backup", true);
 
