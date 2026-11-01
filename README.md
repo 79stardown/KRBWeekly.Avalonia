@@ -51,7 +51,7 @@ Kards Board Weekly（简称KRBWeekly）是一款*Kards金曲*周榜数据统计�
 
 ## 下载
 
-[将一张KRBWeekly加入手牌](https://github.com/79stardown/KRBWeekly.Avalonia/releases/tag/2.0.0.0)
+[将一张KRBWeekly加入手牌](https://github.com/79stardown/KRBWeekly.Avalonia/releases/tag/v2.1.0)
 
 ## 开源协议
 
