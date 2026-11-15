@@ -77,11 +77,20 @@
         <TabControl Grid.Row="1">
 
             <!-- ===== Tab 1: 外观 ===== -->
-            <TabItem Header="外观">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:SymbolIcon Symbol="ColorFill" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="外观" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer>
                     <StackPanel Margin="16" Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
 
-                        <TextBlock Text="主题模式" FontSize="14" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="ColorFill" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="主题模式" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                         <ComboBox x:Name="CbThemeMode" Width="380" HorizontalAlignment="Left"
                                   SelectionChanged="ThemeMode_Changed">
                             <ComboBoxItem Tag="Light" Content="浅色" />
@@ -89,7 +98,10 @@
                         </ComboBox>
                         <TextBlock Classes="hint" Text="选择后立即生效并保存，下次启动保持" />
 
-                        <TextBlock Text="主题色" FontSize="14" FontWeight="SemiBold" Margin="0,8,0,0" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                    <ui:SymbolIcon Symbol="ColorBackground" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="主题色" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                         <WrapPanel x:Name="AccentSwatches">
                             <Button Tag="#FF0078D4" Click="Swatch_Click" Background="#FF0078D4" />
                             <Button Tag="#FF038387" Click="Swatch_Click" Background="#FF038387" />
@@ -122,7 +134,13 @@
             </TabItem>
 
             <!-- ===== Tab 2: 计算与统计（评分方式与系数 + 筛选规则集） ===== -->
-            <TabItem Header="计算与统计">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:SymbolIcon Symbol="Calculator" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="计算与统计" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" Spacing="14" MaxWidth="1020" HorizontalAlignment="Left">
 
@@ -132,7 +150,10 @@
                                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                             <StackPanel Spacing="10">
                                 <StackPanel Spacing="2">
-                                    <TextBlock Text="标签管理" FontSize="16" FontWeight="SemiBold" />
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Tag" FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="标签管理" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                                     <TextBlock Classes="hint"
                                                Text="新建或删除搜索标签。标签决定起算值、统计记录和黑白名单；删除标签会连同它的数据一起删除，删不掉的会在提示里说明。" />
                                 </StackPanel>
@@ -200,7 +221,10 @@
                                 Padding="16,14"
                                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                             <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
-                                <TextBlock Text="评分方式与系数" FontSize="16" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Calculator" FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="评分方式与系数" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
 
 
                                 <TextBlock Text="计算方式" FontSize="14" FontWeight="SemiBold" />
@@ -280,172 +304,43 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 筛选规则集（决定哪些视频参与统计） -->
-                        <StackPanel Spacing="8" MaxWidth="1020" HorizontalAlignment="Left">
-                            <StackPanel Spacing="2" Margin="0,6,0,0">
-                                <TextBlock Text="筛选规则" FontSize="16" FontWeight="SemiBold" />
+                        <!-- 筛选规则集：只放摘要，编辑在独立窗口里 -->
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
+                                Padding="16,14"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <StackPanel Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Filter" FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="筛选规则" FontSize="16" FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <TextBlock x:Name="TxtRulesSummary" FontSize="12" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                                 <TextBlock Classes="hint"
-                                           Text="只有满足规则集的视频才会被统计；与上面的评分方式共同决定本周榜单。默认 4 组与旧版 A/B/C/D 过滤表等价。" />
+                                           Text="规则分三层：条件 → 规则组（组内任一/全部）→ 规则集（组间任一/全部）。默认 4 组与旧版 A/B/C/D 过滤表等价。" />
+
+                                <Button x:Name="BtnEditRules" Height="32" Padding="14,0" HorizontalAlignment="Left"
+                                        Click="OpenRuleSet_Click"
+                                        Background="{DynamicResource SystemAccentColor}" Foreground="White"
+                                        FontWeight="SemiBold">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <ui:SymbolIcon Symbol="Edit" FontSize="13" Foreground="White" />
+                                        <TextBlock Text="修改规则集" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
-
-
-                            <!-- 顶部工具条：启用 / 组间关系 / 添加组 / 保存 -->
-                            <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
-                                    Padding="12,6"
-                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
-                                <Grid ColumnDefinitions="Auto,*,Auto">
-                                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <TextBlock Text="启用规则集" FontSize="13" VerticalAlignment="Center" />
-                                            <ToggleSwitch x:Name="TglRulesEnabled" IsChecked="True"
-                                                          OnContent="" OffContent=""
-                                                          Checked="RuleToggle_Changed" Unchecked="RuleToggle_Changed" />
-                                        </StackPanel>
-                                        <Border Classes="seg-group" VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal">
-                                                <ToggleButton x:Name="TglSetAny" Content="组间任一" Classes="seg"
-                                                              Click="SetModeAny_Click"
-                                                              ToolTip.Tip="任意一个规则组满足即通过" />
-                                                <ToggleButton x:Name="TglSetAll" Content="组间全部" Classes="seg"
-                                                              Click="SetModeAll_Click"
-                                                              ToolTip.Tip="所有规则组都要满足才通过" />
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <Button x:Name="BtnAddGroup" Classes="accent-link" Click="AddGroup_Click"
-                                                ToolTip.Tip="新增一个规则组">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <ui:SymbolIcon Symbol="Add" FontSize="12" />
-                                                <TextBlock Text="添加组" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button x:Name="BtnSaveRules" Height="30" Padding="12,0" Click="SaveRules_Click"
-                                                Background="{DynamicResource SystemAccentColor}" Foreground="White"
-                                                FontWeight="SemiBold">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <ui:SymbolIcon Symbol="Save" FontSize="13" Foreground="White" />
-                                                <TextBlock Text="保存" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                        <Button x:Name="BtnResetRules" Height="30" Padding="10,0" Click="ResetRules_Click"
-                                                ToolTip.Tip="恢复默认的 A/B/C/D 规则"
-                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                                BorderThickness="1">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <ui:SymbolIcon Symbol="Refresh" FontSize="12" />
-                                                <TextBlock Text="默认" VerticalAlignment="Center" />
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <TextBlock Classes="hint"
-                                       Text="条件 → 规则组（组内任一 / 全部）→ 规则集（组间任一 / 全部），整组通过即命中；「非」表示取反。默认 4 组与旧版 A/B/C/D 过滤表等价；关闭开关后不按内容筛选，只有黑白名单生效。" />
-
-                            <ItemsControl x:Name="RuleGroupList">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="{DynamicResource ControlFillColorTertiaryBrush}" CornerRadius="6"
-                                                Padding="10,6" Margin="0,0,0,8"
-                                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                                                BorderThickness="1">
-                                            <StackPanel Spacing="4">
-                                                <!-- 组头：标题 · 组内关系 · 加条件 …… 启用 / 复制 / 删除 -->
-                                                <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-                                                    <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"
-                                                               VerticalAlignment="Center" Margin="2,0,10,0" />
-                                                    <Border Grid.Column="1" Classes="seg-group" VerticalAlignment="Center">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <ToggleButton Content="任一" Classes="seg"
-                                                                          IsChecked="{Binding IsAnyMode, Mode=TwoWay}"
-                                                                          ToolTip.Tip="组内任一条件满足即可" />
-                                                            <ToggleButton Content="全部" Classes="seg"
-                                                                          IsChecked="{Binding IsAllMode, Mode=TwoWay}"
-                                                                          ToolTip.Tip="组内全部条件都要满足" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                    <Button Grid.Column="2" Classes="accent-link"
-                                                            HorizontalAlignment="Left" Margin="8,0,0,0"
-                                                            Click="AddRule_Click" ToolTip.Tip="给本组加一条条件">
-                                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                                            <ui:SymbolIcon Symbol="Add" FontSize="11" />
-                                                            <TextBlock Text="添加条件" VerticalAlignment="Center" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="2"
-                                                                VerticalAlignment="Center">
-                                                        <ToggleSwitch IsChecked="{Binding Enabled, Mode=TwoWay}"
-                                                                         OnContent="" OffContent=""
-                                                                         ToolTip.Tip="启用本组" />
-                                                        <Button Classes="icon-btn" Click="CopyGroup_Click"
-                                                                ToolTip.Tip="复制本组">
-                                                            <ui:SymbolIcon Symbol="Copy" FontSize="13" />
-                                                        </Button>
-                                                        <Button Classes="icon-btn" Click="DeleteGroup_Click"
-                                                                ToolTip.Tip="删除本组">
-                                                            <ui:SymbolIcon Symbol="Delete" FontSize="13" />
-                                                        </Button>
-                                                    </StackPanel>
-                                                </Grid>
-
-                                                <!-- 条件行 -->
-                                                <ItemsControl ItemsSource="{Binding Rules}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid ColumnDefinitions="30,150,120,105,Auto,Auto,Auto"
-                                                                  Margin="0,0,0,4">
-                                                                <Button Grid.Column="0" Classes="icon-btn"
-                                                                        Width="26" Height="26"
-                                                                        Click="DeleteRule_Click" ToolTip.Tip="删除条件">
-                                                                    <ui:SymbolIcon Symbol="Delete" FontSize="12" />
-                                                                </Button>
-                                                                <ComboBox Grid.Column="1" Height="30" VerticalAlignment="Center"
-                                                                          ItemsSource="{x:Static views:RuleVm.FieldChoices}"
-                                                                          SelectedIndex="{Binding FieldIndex, Mode=TwoWay}" />
-                                                                <ComboBox Grid.Column="2" Height="30" Margin="6,0,0,0"
-                                                                          VerticalAlignment="Center"
-                                                                          ItemsSource="{x:Static views:RuleVm.OpChoices}"
-                                                                          SelectedIndex="{Binding OpIndex, Mode=TwoWay}" />
-                                                                <TextBox Grid.Column="3" Height="30" Margin="6,0,0,0"
-                                                                         Text="{Binding MinText, Mode=TwoWay}"
-                                                                         Watermark="数值" FontFamily="Consolas"
-                                                                         VerticalContentAlignment="Center" />
-                                                                <TextBlock Grid.Column="4" Text="至" Margin="8,0"
-                                                                           VerticalAlignment="Center"
-                                                                           IsVisible="{Binding IsRange}" />
-                                                                <TextBox Grid.Column="5" Width="105" Height="30"
-                                                                         Text="{Binding MaxText, Mode=TwoWay}"
-                                                                         Watermark="上界" FontFamily="Consolas"
-                                                                         VerticalContentAlignment="Center"
-                                                                         IsVisible="{Binding IsRange}" />
-                                                                <ToggleButton Grid.Column="6" Content="非" Classes="seg"
-                                                                              Margin="8,0,0,0" VerticalAlignment="Center"
-                                                                              IsChecked="{Binding IsReversed, Mode=TwoWay}"
-                                                                              ToolTip.Tip="取反：条件成立时反而判为不满足" />
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <TextBlock x:Name="TxtRuleHint" Classes="hint"
-                                       Text="改动后需点「保存」才会生效；关闭规则集或清空所有条件时，所有视频直接进入计分。" />
-
-                        </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 <!-- ===== Tab 4: 黑白名单 ===== -->
-            <TabItem Header="黑白名单">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:SymbolIcon Symbol="People" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="黑白名单" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Margin="16" RowDefinitions="Auto,*,8,*">
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,12">
                         <Button x:Name="BtnOpenDataFolder"
@@ -564,7 +459,13 @@
             </TabItem>
 
             <!-- ===== Tab 5: 数据文件（起算值备份 + 运行日志） ===== -->
-            <TabItem Header="数据文件">
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:SymbolIcon Symbol="Folder" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="数据文件" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" Spacing="12">
 
@@ -579,7 +480,10 @@
                         <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16"
                                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="起算值状态" FontSize="14" FontWeight="SemiBold" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Save" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="起算值状态" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                                 <TextBlock x:Name="TxtCurrentStatus" Text="--" FontSize="12"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                                 <StackPanel Orientation="Horizontal" Spacing="10">
@@ -616,7 +520,10 @@
                         </Border>
 
                         <!-- 备份文件列表 -->
-                        <TextBlock Text="备份文件" FontSize="14" FontWeight="SemiBold" Margin="0,4,0,0" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                                    <ui:SymbolIcon Symbol="Library" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="备份文件" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                         <TextBlock x:Name="TxtFileCount" Text="共 0 个文件" FontSize="13"
                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
                         <ItemsControl x:Name="FileList">
@@ -649,7 +556,10 @@
 
 
                         <!-- 运行日志（只读查看） -->
-                        <TextBlock Text="运行日志" FontSize="14" FontWeight="SemiBold" Margin="0,12,0,0" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,12,0,0">
+                                    <ui:SymbolIcon Symbol="Document" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="运行日志" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <Button x:Name="BtnRefreshLog"
                                     Height="30" Click="RefreshLogList_Click"

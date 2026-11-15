@@ -24,7 +24,6 @@ public partial class SettingsView : UserControl
     public ObservableCollection<FileEntry> LogEntries { get; } = new();
     public ObservableCollection<ListEntry> WhiteEntries { get; } = new();
     public ObservableCollection<ListEntry> BlackEntries { get; } = new();
-    public ObservableCollection<RuleGroupVm> RuleGroups { get; } = new();
     public ObservableCollection<TagRow> TagRows { get; } = new();
 
     public SettingsView()
@@ -49,7 +48,6 @@ public partial class SettingsView : UserControl
         LogFileList.ItemsSource = LogEntries;
         WhiteList.ItemsSource = WhiteEntries;
         BlackList.ItemsSource = BlackEntries;
-        RuleGroupList.ItemsSource = RuleGroups;
         TagList.ItemsSource = TagRows;
 
         Loaded += async (_, _) =>
@@ -59,6 +57,7 @@ public partial class SettingsView : UserControl
             _dataTagSelector?.Reload(tag);
 
             LoadConfig();
+            RefreshRulesSummary();
             RefreshStatus();
             RefreshFileList();
             RefreshLogList();
@@ -138,10 +137,17 @@ public partial class SettingsView : UserControl
 
         var wasCurrent = string.Equals(CurrentTag(), tag, StringComparison.OrdinalIgnoreCase);
 
-        var ok = await UiDialog.ConfirmAsync("删除标签",
+        var remaining = TagService.LoadTags(_dataDir)
+            .Where(t => !string.Equals(t, tag, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var switchNote = wasCurrent && remaining.Count > 0
+            ? $"\n\n这是当前正在使用的标签，删除后会自动切换到「{remaining[0]}」。"
+            : "";
+
+        var ok = await UiDialog.ConfirmAsync($"删除标签「{tag}」",
             $"确定删除标签「{tag}」吗？\n\n会同时删除它的：\n" +
             "· 起算值（Data\\History）\n· 黑白名单（Data\\Lists）\n· 统计记录（Data\\Records）\n\n" +
-            "这些数据不可恢复。",
+            "这些数据不可恢复。" + switchNote,
             "删除", "取消");
         if (!ok) return;
 
@@ -287,8 +293,7 @@ public partial class SettingsView : UserControl
             TxtCMax.Text = c.CMax.ToString();
             LoadAppearanceTab(c);
             LoadCalcTab(c);
-            LoadRulesTab(c);
-        }
+            }
         finally
         {
             _loadingTabs = false;
@@ -338,172 +343,25 @@ public partial class SettingsView : UserControl
     private static double ParseDouble(string? s, double defaultValue)
         => double.TryParse(s, out var v) ? v : defaultValue;
 
-    // ===== Tab 2 下半部分: 筛选规则（已并入「计算与统计」） =====
+    // ===== 筛选规则（编辑在独立窗口里） =====
 
-    /// <summary>组间关系：true = 全部满足（All），false = 任一满足（Any）</summary>
-    private bool _matchAll;
-
-    private void LoadRulesTab(ScoringConfig c)
+    /// <summary>刷新规则摘要（设置页只显示概要，具体编辑在 RuleSetWindow）</summary>
+    private void RefreshRulesSummary()
     {
-        RuleGroups.Clear();
+        if (TxtRulesSummary is null) return;
 
-        var rules = c.FilterRules ?? FilterRuleSet.CreateDefault();
-        TglRulesEnabled.IsChecked = rules.Enabled;
-        _matchAll = string.Equals(rules.MatchMode, FilterMatch.All, StringComparison.OrdinalIgnoreCase);
-        ApplySetModeToggles();
-
-        foreach (var g in rules.Groups)
-            RuleGroups.Add(RuleGroupVm.FromModel(g));
-
-        RenumberGroups();
-        UpdateRuleHint();
+        var set = _configSvc.Load().FilterRules ?? FilterRuleSet.CreateDefault();
+        TxtRulesSummary.Text = set.Summary() + "。";
     }
 
-    /// <summary>「组间」两个分段按钮的选中态跟 _matchAll 走（代码控制，避免 ToggleButton 互相取消）</summary>
-    private void ApplySetModeToggles()
+    private async void OpenRuleSet_Click(object? sender, RoutedEventArgs e)
     {
-        TglSetAny.IsChecked = !_matchAll;
-        TglSetAll.IsChecked = _matchAll;
+        if (TopLevel.GetTopLevel(this) is not Window owner) return;
+
+        var win = new RuleSetWindow(_dataDir);
+        await win.ShowDialog(owner);
+        RefreshRulesSummary();
     }
-
-    private void SetModeAny_Click(object? sender, RoutedEventArgs e)
-    {
-        _matchAll = false;
-        ApplySetModeToggles();
-        UpdateRuleHint();
-    }
-
-    private void SetModeAll_Click(object? sender, RoutedEventArgs e)
-    {
-        _matchAll = true;
-        ApplySetModeToggles();
-        UpdateRuleHint();
-    }
-
-    /// <summary>组标题跟着序号走：删掉中间一组后不留「规则组 1 / 3」这种空洞</summary>
-    private void RenumberGroups()
-    {
-        for (int i = 0; i < RuleGroups.Count; i++)
-            RuleGroups[i].Title = $"规则组 {i + 1}";
-    }
-
-    private void UpdateRuleHint()
-    {
-        if (TxtRuleHint == null) return;
-        var enabled = TglRulesEnabled.IsChecked == true;
-        var active = RuleGroups.Count(g => g.Enabled && g.Rules.Count > 0);
-        var mode = _matchAll ? "全部满足" : "任一满足";
-
-        TxtRuleHint.Text = enabled
-            ? $"编辑中：{active} 个规则组生效（共 {RuleGroups.Count} 组，组间{mode}）。改动后需点「保存」才会生效。"
-            : "规则集已关闭：不按内容筛选，仅黑白名单生效。改动后需点「保存」才会生效。";
-    }
-
-    private void RuleToggle_Changed(object? sender, RoutedEventArgs e) => UpdateRuleHint();
-
-    private void AddGroup_Click(object? sender, RoutedEventArgs e)
-    {
-        var g = new RuleGroupVm();
-        // 新组默认给一条「播放量 ≥ 0」，避免空组被当成无效组
-        g.Rules.Add(new RuleVm { FieldIndex = FilterField.IndexOf(FilterField.View), MinText = "0" });
-        RuleGroups.Add(g);
-        RenumberGroups();
-        UpdateRuleHint();
-    }
-
-    private void CopyGroup_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: RuleGroupVm g }) return;
-
-        var index = RuleGroups.IndexOf(g);
-        RuleGroups.Insert(index >= 0 ? index + 1 : RuleGroups.Count, g.Clone());
-        RenumberGroups();
-        UpdateRuleHint();
-    }
-
-    private void DeleteGroup_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: RuleGroupVm g }) return;
-        RuleGroups.Remove(g);
-        RenumberGroups();
-        UpdateRuleHint();
-    }
-
-    private void AddRule_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: RuleGroupVm g }) return;
-        g.Rules.Add(new RuleVm { FieldIndex = FilterField.IndexOf(FilterField.View), MinText = "0" });
-        UpdateRuleHint();
-    }
-
-    private void DeleteRule_Click(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: RuleVm rule }) return;
-        foreach (var g in RuleGroups)
-            if (g.Rules.Remove(rule)) break;
-        UpdateRuleHint();
-    }
-
-    private async void SaveRules_Click(object? sender, RoutedEventArgs e)
-    {
-        var set = new FilterRuleSet
-        {
-            Enabled = TglRulesEnabled.IsChecked == true,
-            MatchMode = _matchAll ? FilterMatch.All : FilterMatch.Any,
-            Groups = new List<FilterRuleGroup>(),
-        };
-
-        for (int gi = 0; gi < RuleGroups.Count; gi++)
-        {
-            var gvm = RuleGroups[gi];
-            var group = new FilterRuleGroup
-            {
-                Enabled = gvm.Enabled,
-                MatchMode = gvm.MatchModeIndex == 0 ? FilterMatch.Any : FilterMatch.All,
-            };
-
-            for (int ri = 0; ri < gvm.Rules.Count; ri++)
-            {
-                if (!gvm.Rules[ri].TryToModel(out var rule, out var error))
-                {
-                    await UiDialog.WarnAsync("规则有误", $"规则组 {gi + 1} 第 {ri + 1} 条条件：{error}");
-                    return;
-                }
-                group.Rules.Add(rule);
-            }
-
-            set.Groups.Add(group);
-        }
-
-        if (set.Groups.Count == 0)
-        {
-            var ok = await UiDialog.ConfirmAsync("规则集为空",
-                "当前没有任何规则组，保存后等于不做内容筛选（所有视频直接进入计分）。确定保存？");
-            if (!ok) return;
-        }
-
-        var c = _configSvc.Load();
-        c.FilterRules = set;
-        _configSvc.Save(c);
-
-        UpdateRuleHint();
-        await UiDialog.InfoAsync("已保存", $"筛选规则已保存（{set.Summary()}），下次统计生效。");
-    }
-
-    private async void ResetRules_Click(object? sender, RoutedEventArgs e)
-    {
-        var ok = await UiDialog.ConfirmAsync("恢复默认规则",
-            "将把筛选规则恢复为默认的 A/B/C/D 四级过滤表。\n\n这会覆盖当前编辑的规则，继续？");
-        if (!ok) return;
-
-        var c = _configSvc.Load();
-        c.FilterRules = FilterRuleSet.CreateDefault();
-        _configSvc.Save(c);
-
-        LoadRulesTab(c);
-        await UiDialog.InfoAsync("完成", "已恢复默认筛选规则，下次统计生效。");
-    }
-
     // ===== Tab 3: 黑白名单（按标签隔离） =====
 
     /// <summary>当前标签对应的名单服务（名单在 Data\Lists\&lt;标签&gt;\ 下）</summary>
@@ -717,6 +575,7 @@ public partial class SettingsView : UserControl
                 File.Copy(dest, dest + ".backup", true);
             File.Copy(filePath, dest, true);
 
+            RefreshRulesSummary();
             RefreshStatus();
             RefreshFileList();
             await UiDialog.InfoAsync("完成", "恢复成功！");
@@ -816,6 +675,7 @@ public partial class SettingsView : UserControl
 
             File.Copy(_selectedFile, destPath, true);
 
+            RefreshRulesSummary();
             RefreshStatus();
             RefreshFileList();
             TxtFileInfo.Text = "[OK] 导入成功！";
