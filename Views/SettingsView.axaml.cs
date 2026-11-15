@@ -62,10 +62,35 @@ public partial class SettingsView : UserControl
             RefreshFileList();
             RefreshLogList();
             RefreshTagList();
+            LoadAboutTab();
             await LoadListsAsync();
         };
     }
 
+    // ===== Tab 5: 关于 =====
+
+    private void LoadAboutTab()
+    {
+        var ver = typeof(SettingsView).Assembly.GetName().Version;
+        TxtAboutVersion.Text = ver is null ? "v?" : $"v{ver.ToString(3)}";
+        TxtAboutRuntime.Text = $".NET {Environment.Version}";
+    }
+
+    /// <summary>关于页里的链接：点一下用系统浏览器打开</summary>
+    private void Link_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (sender is not TextBlock { Tag: string url }) return;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+        }
+        catch
+        {
+            // 打不开浏览器就忽略，链接本身在界面上还能看到
+        }
+    }
     // ===== 标签管理（计算与统计页顶部） =====
 
     /// <summary>重建标签列表：每个标签显示起算值/名单/记录数量，当前标签打标</summary>

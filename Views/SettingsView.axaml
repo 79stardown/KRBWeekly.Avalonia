@@ -620,6 +620,93 @@
                 </ScrollViewer>
             </TabItem>
 
+            <!-- ===== Tab 5: 关于 ===== -->
+            <TabItem>
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <ui:SymbolIcon Symbol="Help" FontSize="14" VerticalAlignment="Center" />
+                        <TextBlock Text="关于" VerticalAlignment="Center" />
+                    </StackPanel>
+                </TabItem.Header>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16" Spacing="14" MaxWidth="1020" HorizontalAlignment="Left">
+
+                        <!-- 横幅 -->
+                        <Border CornerRadius="8" ClipToBounds="True" Background="#FF1E1E1E">
+                            <Image Source="/Assets/about-banner.jpg" Stretch="Uniform" />
+                        </Border>
+
+                        <!-- 基本信息 -->
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
+                                Padding="16,14"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <StackPanel Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Page" FontSize="16" VerticalAlignment="Center" />
+                                    <TextBlock Text="Kards Board Weekly" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource SystemAccentColor}" CornerRadius="3"
+                                            Padding="6,1" VerticalAlignment="Center">
+                                        <TextBlock x:Name="TxtAboutVersion" Text="v2.1.2" FontSize="11" Foreground="White" />
+                                    </Border>
+                                </StackPanel>
+
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="仓库" Width="72" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock Classes="link" FontSize="12"
+                                                   Text="github.com/79stardown/KRBWeekly.Avalonia"
+                                                   Tag="https://github.com/79stardown/KRBWeekly.Avalonia"
+                                                   PointerPressed="Link_Click" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="开源协议" Width="72" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock Classes="link" FontSize="12" Text="MIT License"
+                                                   Tag="https://github.com/79stardown/KRBWeekly.Avalonia/blob/main/LICENSE"
+                                                   PointerPressed="Link_Click" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="技术栈" Width="72" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock FontSize="12" Text="Avalonia 11 · FluentAvalonia · .NET 8" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="运行环境" Width="72" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock x:Name="TxtAboutRuntime" FontSize="12" Text=".NET" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="交流群" Width="72" FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock FontSize="12" Text="QQ 群 1065470036（kards金榜制作交流群）" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 鸣谢 -->
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
+                                Padding="16,14"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <ui:SymbolIcon Symbol="Favorite" FontSize="16" Foreground="#FFE3008C"
+                                                   VerticalAlignment="Center" />
+                                    <TextBlock Text="鸣谢" FontSize="16" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <TextBlock Text="Kards金曲周榜制作组" FontSize="14" FontWeight="SemiBold" />
+                                <TextBlock Classes="hint"
+                                           Text="感谢提供榜单口径、数据核对与长期反馈；也感谢 Avalonia、FluentAvalonia、SkiaSharp 与 .NET 这些开源项目。" />
+                                <TextBlock Classes="hint" Text="本项目编写时使用了人工智能工具。" />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Classes="hint" Text="© 2026 79stardown · 本项目采用 MIT 协议开源" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
         </TabControl>
     </Grid>
 </UserControl>
