@@ -126,6 +126,75 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" Spacing="14" MaxWidth="1020" HorizontalAlignment="Left">
 
+                        <!-- 标签管理 -->
+                        <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
+                                Padding="16,14"
+                                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1">
+                            <StackPanel Spacing="10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="标签管理" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Classes="hint"
+                                               Text="新建或删除搜索标签。标签决定起算值、统计记录和黑白名单；删除标签会连同它的数据一起删除，删不掉的会在提示里说明。" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBox x:Name="TxtNewTag" Width="260" Height="32"
+                                             Watermark="新标签名，如 某游戏名"
+                                             VerticalContentAlignment="Center" />
+                                    <Button x:Name="BtnCreateTag" Height="32" Padding="12,0"
+                                            Click="CreateTag_Click"
+                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="1" FontSize="12">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <ui:SymbolIcon Symbol="Add" FontSize="11" />
+                                            <TextBlock Text="新建标签" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+
+                                <ItemsControl x:Name="TagList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource ControlFillColorTertiaryBrush}"
+                                                    CornerRadius="6" Padding="10,6" Margin="0,0,0,6"
+                                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1">
+                                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                                    <StackPanel Spacing="1" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
+                                                            <Border Background="{DynamicResource SystemAccentColor}"
+                                                                    CornerRadius="3" Padding="6,1"
+                                                                    IsVisible="{Binding IsCurrent}">
+                                                                <TextBlock Text="当前" FontSize="10" Foreground="White" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding StatsText}" FontSize="11"
+                                                                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="1" Content="设为当前" Width="76" Height="26"
+                                                            FontSize="11" Margin="0,0,6,0"
+                                                            Click="SetCurrentTag_Click" Tag="{Binding Name}"
+                                                            IsVisible="{Binding !IsCurrent}"
+                                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                            BorderThickness="1" />
+                                                    <Button Grid.Column="2" Content="删除" Width="60" Height="26"
+                                                            FontSize="11"
+                                                            Click="DeleteTag_Click" Tag="{Binding Name}"
+                                                            Background="#FFCC0000" Foreground="White" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
                         <!-- 评分方式与系数 -->
                         <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8"
                                 Padding="16,14"

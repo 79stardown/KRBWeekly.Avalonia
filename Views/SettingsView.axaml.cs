@@ -25,6 +25,7 @@ public partial class SettingsView : UserControl
     public ObservableCollection<ListEntry> WhiteEntries { get; } = new();
     public ObservableCollection<ListEntry> BlackEntries { get; } = new();
     public ObservableCollection<RuleGroupVm> RuleGroups { get; } = new();
+    public ObservableCollection<TagRow> TagRows { get; } = new();
 
     public SettingsView()
     {
@@ -49,6 +50,7 @@ public partial class SettingsView : UserControl
         WhiteList.ItemsSource = WhiteEntries;
         BlackList.ItemsSource = BlackEntries;
         RuleGroupList.ItemsSource = RuleGroups;
+        TagList.ItemsSource = TagRows;
 
         Loaded += async (_, _) =>
         {
@@ -60,10 +62,117 @@ public partial class SettingsView : UserControl
             RefreshStatus();
             RefreshFileList();
             RefreshLogList();
+            RefreshTagList();
             await LoadListsAsync();
         };
     }
 
+    // ===== 标签管理（计算与统计页顶部） =====
+
+    /// <summary>重建标签列表：每个标签显示起算值/名单/记录数量，当前标签打标</summary>
+    private void RefreshTagList()
+    {
+        var current = CurrentTag();
+        TagRows.Clear();
+
+        foreach (var tag in TagService.LoadTags(_dataDir))
+        {
+            var historyCount = HistoryService.CountEntries(DataScope.HistoryFile(_dataDir, tag));
+            var listSvc = new ListService(_dataDir, tag);
+            var recordsDir = DataScope.RecordsDirectory(_dataDir, tag);
+            var records = Directory.Exists(recordsDir)
+                ? Directory.GetFiles(recordsDir, "*.json").Length
+                : 0;
+
+            TagRows.Add(new TagRow
+            {
+                Name = tag,
+                IsCurrent = string.Equals(tag, current, StringComparison.OrdinalIgnoreCase),
+                StatsText = $"起算值 {(historyCount < 0 ? "?" : historyCount)} 条 · " +
+                            $"白名单 {listSvc.LoadWhitelist().Count} · 黑名单 {listSvc.LoadBlacklist().Count} · " +
+                            $"记录 {records} 份",
+            });
+        }
+    }
+
+    private async void CreateTag_Click(object? sender, RoutedEventArgs e)
+    {
+        var input = TxtNewTag.Text;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            await UiDialog.WarnAsync("提示", "请先输入标签名。");
+            return;
+        }
+
+        if (!TagService.TryAddTag(_dataDir, input, out var tag, out var error))
+        {
+            await UiDialog.WarnAsync("无法新建", error ?? "标签不合法。");
+            return;
+        }
+
+        TxtNewTag.Text = "";
+        RefreshTagList();
+        await UiDialog.InfoAsync("已新建", $"标签「{tag}」已创建，可点「设为当前」切过去。");
+    }
+
+    private async void SetCurrentTag_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag }) return;
+
+        var cfg = _configSvc.Load();
+        cfg.SearchKeyword = tag;
+        _configSvc.Save(cfg);
+
+        _listsTagSelector?.Reload(tag);
+        _dataTagSelector?.Reload(tag);
+
+        RefreshTagList();
+        RefreshStatus();
+        RefreshFileList();
+        await LoadListsAsync();
+    }
+
+    private async void DeleteTag_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag }) return;
+
+        var wasCurrent = string.Equals(CurrentTag(), tag, StringComparison.OrdinalIgnoreCase);
+
+        var ok = await UiDialog.ConfirmAsync("删除标签",
+            $"确定删除标签「{tag}」吗？\n\n会同时删除它的：\n" +
+            "· 起算值（Data\\History）\n· 黑白名单（Data\\Lists）\n· 统计记录（Data\\Records）\n\n" +
+            "这些数据不可恢复。",
+            "删除", "取消");
+        if (!ok) return;
+
+        if (!TagService.TryRemoveTag(_dataDir, tag, out var error))
+        {
+            await UiDialog.WarnAsync("无法删除", error ?? "删除失败。");
+            return;
+        }
+
+        DataScope.DeleteTagData(_dataDir, tag);
+
+        if (wasCurrent)
+        {
+            var next = TagService.LoadTags(_dataDir).FirstOrDefault() ?? TagService.DefaultTag;
+            TagService.EnsureRegistered(_dataDir, next);
+
+            var cfg = _configSvc.Load();
+            cfg.SearchKeyword = next;
+            _configSvc.Save(cfg);
+
+            _listsTagSelector?.Reload(next);
+            _dataTagSelector?.Reload(next);
+        }
+
+        RefreshTagList();
+        RefreshStatus();
+        RefreshFileList();
+        await LoadListsAsync();
+
+        await UiDialog.InfoAsync("已删除", $"标签「{tag}」及其数据已删除。");
+    }
     /// <summary>黑白名单页切换标签</summary>
     private async void OnListsTagChanged(string tag)
     {
@@ -798,6 +907,13 @@ public partial class SettingsView : UserControl
         if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
         return $"{bytes / (1024.0 * 1024.0):F1} MB";
     }
+}
+
+public class TagRow
+{
+    public string Name { get; set; } = "";
+    public bool IsCurrent { get; set; }
+    public string StatsText { get; set; } = "";
 }
 
 public class FileEntry

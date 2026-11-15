@@ -119,6 +119,33 @@ public static class TagService
         return true;
     }
 
+    /// <summary>
+    /// 从注册表移除标签（数据由调用方决定是否一并删除）。
+    /// 至少保留一个标签，删到只剩一个时返回 false。
+    /// </summary>
+    public static bool TryRemoveTag(string dataDir, string? raw, out string? error)
+    {
+        var tag = Normalize(raw);
+        error = null;
+
+        var tags = LoadTags(dataDir);
+        var existing = tags.FirstOrDefault(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+        if (existing is null)
+        {
+            error = $"标签「{tag}」不在列表里。";
+            return false;
+        }
+        if (tags.Count <= 1)
+        {
+            error = "至少要保留一个标签，删除前先新建一个。";
+            return false;
+        }
+
+        tags.Remove(existing);
+        SaveTags(dataDir, tags);
+        return true;
+    }
+
     /// <summary>确保某个标签在注册表里（老配置/手工改过 settings.json 时用）</summary>
     public static void EnsureRegistered(string dataDir, string? raw)
     {

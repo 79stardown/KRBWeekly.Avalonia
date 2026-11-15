@@ -54,6 +54,41 @@ public static class DataScope
     public static string ListsDirectory(string dataDir, string? tag)
         => Path.Combine(dataDir, ListsFolder, FolderName(tag));
 
+    /// <summary>删除某个标签的全部数据（起算值 + 备份、黑白名单、统计记录），用于标签管理里的删除</summary>
+    public static void DeleteTagData(string dataDir, string? tag)
+    {
+        var history = HistoryFile(dataDir, tag);
+        TryDeleteFile(history);
+        TryDeleteFile(history + ".backup");
+
+        TryDeleteDir(ListsDirectory(dataDir, tag));
+        TryDeleteDir(RecordsDirectory(dataDir, tag));
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+        catch
+        {
+            // 单个文件删不掉不影响其它数据
+        }
+    }
+
+    private static void TryDeleteDir(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
+        }
+        catch
+        {
+            // 目录删不掉（被占用等）时忽略
+        }
+    }
+
     private static string ShortHash(string s)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(s));
