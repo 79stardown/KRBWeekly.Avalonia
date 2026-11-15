@@ -2,7 +2,6 @@ using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
@@ -20,12 +19,12 @@ public partial class StatisticsView : UserControl
 
     private readonly string _dataDir;
     private readonly BilibiliApiService _api;
-    private readonly ListService _listSvc;
     private readonly ConfigService _configSvc;
     private ScoringConfig _config = new();
     private List<VideoInfo> _results = new();
     private bool _isRunning;
     private bool _rateLimitNotified;
+    private TagSelector? _tagSelector;
     private DateTime _effectiveNow;
 
     /// <summary>统计完成并自动存档后触发（MainWindow 订阅后自动切换到筛选视图）</summary>
@@ -42,39 +41,36 @@ public partial class StatisticsView : UserControl
         LogService.Init(_dataDir);
 
         _api = new BilibiliApiService();
-        _listSvc = new ListService(_dataDir);
         _configSvc = new ConfigService(_dataDir);
+        _tagSelector = new TagSelector(CbSearchTag, _dataDir, _configSvc);
+        _tagSelector.TagChanged += _ => LoadListStatus();
+
         Loaded += (_, _) =>
         {
-            LoadListStatus();
             LoadSearchSettings();
+            LoadListStatus();
             DpSpecific.SelectedDate = DateTime.Today;
         };
     }
+
+    /// <summary>当前选中的标签（还没选时回落到 settings.json）</summary>
+    private string CurrentTag()
+        => _tagSelector?.CurrentTag is { Length: > 0 } t ? t : TagService.Normalize(_configSvc.Load().SearchKeyword);
 
     /// <summary>每次进入本页都重读 settings.json：标签与规则可能在设置页被改过</summary>
     private void LoadSearchSettings()
     {
         var c = _configSvc.Load();
-        TxtSearchTag.Text = c.SearchKeyword;
+        _tagSelector?.Reload(c.SearchKeyword);
 
         var rules = c.FilterRules ?? FilterRuleSet.CreateDefault();
         TxtRuleStatus.Text = $"筛选规则: {rules.Summary()}　（在「设置 → 计算与统计」中编辑）";
     }
-
-    /// <summary>规整搜索标签：去首尾空白、去掉用户自带的外层引号、压缩连续空格</summary>
-    private static string NormalizeTag(string? raw)
-    {
-        var t = (raw ?? "").Trim();
-        while (t.Length >= 2 && t.StartsWith('"') && t.EndsWith('"'))
-            t = t[1..^1].Trim();
-        return Regex.Replace(t, @"\s+", " ");
-    }
-
     private void LoadListStatus()
     {
-        var white = _listSvc.LoadWhitelist();
-        var black = _listSvc.LoadBlacklist();
+        var listSvc = new ListService(_dataDir, CurrentTag());
+        var white = listSvc.LoadWhitelist();
+        var black = listSvc.LoadBlacklist();
         TxtListStatus.Text = $"白名单: {white.Count} 个  |  黑名单: {black.Count} 个";
     }
 
@@ -87,16 +83,15 @@ public partial class StatisticsView : UserControl
     {
         if (_isRunning) return;
 
-        // 搜索标签先规整再落盘：空标签会把全网视频都搜进来，必须拦住
+        // 标签来自下拉选择：空的话说明还没选，直接拦住（空关键词会把全网视频搜进来）
         var cfg = _configSvc.Load();
-        var tag = NormalizeTag(TxtSearchTag.Text);
+        var tag = CurrentTag();
         if (tag.Length == 0)
         {
-            await UiDialog.WarnAsync("提示", "搜索标签不能为空。");
-            TxtSearchTag.Focus();
+            await UiDialog.WarnAsync("提示", "还没有选择搜索标签，先在左上角选一个，或者点「新建」。");
             return;
         }
-        TxtSearchTag.Text = tag;
+        TagService.EnsureRegistered(_dataDir, tag);
         if (!string.Equals(tag, cfg.SearchKeyword, StringComparison.Ordinal))
         {
             cfg.SearchKeyword = tag;
@@ -180,7 +175,7 @@ public partial class StatisticsView : UserControl
     {
         var cfg = _configSvc.Load();
         var rules = cfg.FilterRules ?? FilterRuleSet.CreateDefault();
-        var tag = NormalizeTag(cfg.SearchKeyword);
+        var tag = TagService.Normalize(cfg.SearchKeyword);
         _rateLimitNotified = false;
 
         Log("==================================================");
@@ -199,8 +194,9 @@ public partial class StatisticsView : UserControl
         // 获取只读快照（不修改实际 history）
         var snapshot = historySvc.GetSnapshot();
         Log($"history 快照: {snapshot.Count} 个视频基线（标签「{tag}」）");
-        var whitelist = _listSvc.LoadWhitelist();
-        var blacklist = _listSvc.LoadBlacklist();
+        var listSvc = new ListService(_dataDir, tag);
+        var whitelist = listSvc.LoadWhitelist();
+        var blacklist = listSvc.LoadBlacklist();
         Log($"白名单: {whitelist.Count} 个, 黑名单: {blacklist.Count} 个");
 
         // 规则集要求回看多久 → 决定 pubdate 轮的停止阈值。

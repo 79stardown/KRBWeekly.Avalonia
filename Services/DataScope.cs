@@ -17,9 +17,11 @@ public static class DataScope
 {
     public const string HistoryFolder = "History";
     public const string RecordsFolder = "Records";
+    public const string ListsFolder = "Lists";
 
     private const string HistoryMigratedMarker = ".history-migrated";
     private const string RecordsMigratedMarker = ".records-migrated";
+    private const string ListsMigratedMarker = ".lists-migrated";
 
     /// <summary>标签 → 安全的文件/目录名</summary>
     public static string FolderName(string? tag)
@@ -49,6 +51,9 @@ public static class DataScope
     public static string RecordsDirectory(string dataDir, string? tag)
         => Path.Combine(dataDir, RecordsFolder, FolderName(tag));
 
+    public static string ListsDirectory(string dataDir, string? tag)
+        => Path.Combine(dataDir, ListsFolder, FolderName(tag));
+
     private static string ShortHash(string s)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(s));
@@ -64,6 +69,7 @@ public static class DataScope
     {
         MigrateHistory(dataDir, tag, log);
         MigrateRecords(dataDir, tag, log);
+        MigrateLists(dataDir, tag, log);
     }
 
     private static void MigrateHistory(string dataDir, string? tag, Action<string>? log)
@@ -141,6 +147,44 @@ public static class DataScope
         catch (Exception ex)
         {
             log?.Invoke($"[!] 记录迁移失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 黑白名单原来是全局的 Data\whitelist.txt / blacklist.txt，
+    /// 现在按标签移到 Data\Lists\&lt;标签&gt;\ 下（同样只迁一次）。
+    /// </summary>
+    private static void MigrateLists(string dataDir, string? tag, Action<string>? log)
+    {
+        try
+        {
+            var marker = Path.Combine(dataDir, ListsMigratedMarker);
+            if (File.Exists(marker)) return;
+
+            var legacyWhite = Path.Combine(dataDir, "whitelist.txt");
+            var legacyBlack = Path.Combine(dataDir, "blacklist.txt");
+            if (!File.Exists(legacyWhite) && !File.Exists(legacyBlack)) return;
+
+            var targetDir = ListsDirectory(dataDir, tag);
+            Directory.CreateDirectory(targetDir);
+
+            int moved = 0;
+            foreach (var (src, name) in new[] { (legacyWhite, "whitelist.txt"), (legacyBlack, "blacklist.txt") })
+            {
+                if (!File.Exists(src)) continue;
+                var dst = Path.Combine(targetDir, name);
+                if (File.Exists(dst)) continue;   // 目标已有内容就不覆盖
+                File.Move(src, dst);
+                moved++;
+            }
+
+            File.WriteAllText(marker, tag ?? "");
+            if (moved > 0)
+                log?.Invoke($"[i] 黑白名单已迁移到标签「{tag}」：Data\\{ListsFolder}\\{FolderName(tag)}\\");
+        }
+        catch (Exception ex)
+        {
+            log?.Invoke($"[!] 黑白名单迁移失败（继续用旧文件）: {ex.Message}");
         }
     }
 }

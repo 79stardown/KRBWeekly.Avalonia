@@ -18,11 +18,8 @@
                     <WrapPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,20,8" Spacing="6">
                             <TextBlock Text="搜索标签:" FontSize="13" VerticalAlignment="Center" />
-                            <TextBox x:Name="TxtSearchTag" Width="210" FontFamily="Consolas"
-                                     VerticalContentAlignment="Center" Watermark="如 KARDS金曲" />
-                            <TextBlock x:Name="TxtTagHint" Text="两轮：精确短语 + 分词兜底"
-                                       FontSize="11" VerticalAlignment="Center"
-                                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            <ComboBox x:Name="CbSearchTag" Width="210" VerticalAlignment="Center"
+                                      ToolTip.Tip="从已有标签里选；下拉最底部可以新建。标签决定起算值、统计记录和黑白名单" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,24,8" Spacing="8">

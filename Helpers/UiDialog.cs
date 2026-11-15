@@ -27,6 +27,34 @@ public static class UiDialog
         return result == ContentDialogResult.Primary;
     }
 
+    /// <summary>单行文本输入（新建标签用）；点取消返回 null</summary>
+    public static async Task<string?> PromptAsync(string title, string message,
+        string initial = "", string watermark = "", string primaryText = "确定")
+    {
+        var box = new TextBox { Text = initial, Watermark = watermark, Width = 320 };
+
+        var panel = new StackPanel { Spacing = 10 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = 420,
+        });
+        panel.Children.Add(box);
+
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = panel,
+            PrimaryButtonText = primaryText,
+            CloseButtonText = "取消",
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary ? box.Text : null;
+    }
+
     private static async Task<ContentDialogResult> ShowAsync(string title, string message,
         string? primaryText, string? closeText, ContentDialogButton defaultButton)
     {

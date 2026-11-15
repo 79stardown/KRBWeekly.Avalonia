@@ -16,9 +16,9 @@ public partial class SettingsView : UserControl
     private readonly string _dataDir;
     private readonly ConfigService _configSvc;
     private readonly BilibiliApiService _api;
-    private readonly string _whiteFile;
-    private readonly string _blackFile;
     private string? _selectedFile;
+    private TagSelector? _listsTagSelector;
+    private TagSelector? _dataTagSelector;
 
     public ObservableCollection<FileEntry> FileEntries { get; } = new();
     public ObservableCollection<FileEntry> LogEntries { get; } = new();
@@ -34,12 +34,15 @@ public partial class SettingsView : UserControl
                      ?? AppContext.BaseDirectory;
         _dataDir = Path.Combine(exeDir, "Data");
         Directory.CreateDirectory(_dataDir);
-        _whiteFile = Path.Combine(_dataDir, "whitelist.txt");
-        _blackFile = Path.Combine(_dataDir, "blacklist.txt");
 
         _configSvc = new ConfigService(_dataDir);
         _api = new BilibiliApiService();
         LogService.Init(_dataDir);
+
+        _listsTagSelector = new TagSelector(CbListsTag, _dataDir, _configSvc);
+        _listsTagSelector.TagChanged += OnListsTagChanged;
+        _dataTagSelector = new TagSelector(CbDataTag, _dataDir, _configSvc);
+        _dataTagSelector.TagChanged += OnDataTagChanged;
 
         FileList.ItemsSource = FileEntries;
         LogFileList.ItemsSource = LogEntries;
@@ -49,12 +52,31 @@ public partial class SettingsView : UserControl
 
         Loaded += async (_, _) =>
         {
+            var tag = _configSvc.Load().SearchKeyword;
+            _listsTagSelector?.Reload(tag);
+            _dataTagSelector?.Reload(tag);
+
             LoadConfig();
             RefreshStatus();
             RefreshFileList();
             RefreshLogList();
             await LoadListsAsync();
         };
+    }
+
+    /// <summary>黑白名单页切换标签</summary>
+    private async void OnListsTagChanged(string tag)
+    {
+        _dataTagSelector?.SyncSelection(tag);
+        await LoadListsAsync();
+    }
+
+    /// <summary>数据文件页切换标签</summary>
+    private void OnDataTagChanged(string tag)
+    {
+        _listsTagSelector?.SyncSelection(tag);
+        RefreshStatus();
+        RefreshFileList();
     }
 
     // 灌两个 ComboBox 时抑制 SelectionChanged 回写（否则每次进设置页都会触发一次保存）
@@ -373,13 +395,19 @@ public partial class SettingsView : UserControl
         await UiDialog.InfoAsync("完成", "已恢复默认筛选规则，下次统计生效。");
     }
 
-    // ===== Tab 3: 黑白名单 =====
+    // ===== Tab 3: 黑白名单（按标签隔离） =====
+
+    /// <summary>当前标签对应的名单服务（名单在 Data\Lists\&lt;标签&gt;\ 下）</summary>
+    private ListService CurrentListService() => new(_dataDir, CurrentTag());
 
     private async Task LoadListsAsync()
     {
+        var svc = CurrentListService();
+        TxtListsTag.Text = $"当前标签「{CurrentTag()}」的名单（切标签会换另一套）";
+
         await _api.InitCookiesAsync();
-        await LoadListAsync(_whiteFile, WhiteEntries);
-        await LoadListAsync(_blackFile, BlackEntries);
+        await LoadListAsync(svc.WhitelistPath, WhiteEntries);
+        await LoadListAsync(svc.BlacklistPath, BlackEntries);
     }
 
     private async Task LoadListAsync(string filePath, ObservableCollection<ListEntry> entries)
@@ -409,13 +437,13 @@ public partial class SettingsView : UserControl
     }
 
     private async void BtnWhiteAdd_Click(object? sender, RoutedEventArgs e)
-        => await AddToListAsync(TxtWhiteInput, WhiteEntries, _whiteFile, "白名单");
+        => await AddToListAsync(TxtWhiteInput, WhiteEntries, true, "白名单");
 
     private async void BtnBlackAdd_Click(object? sender, RoutedEventArgs e)
-        => await AddToListAsync(TxtBlackInput, BlackEntries, _blackFile, "黑名单");
+        => await AddToListAsync(TxtBlackInput, BlackEntries, false, "黑名单");
 
     private async Task AddToListAsync(TextBox input, ObservableCollection<ListEntry> entries,
-        string filePath, string listName)
+        bool isWhite, string listName)
     {
         var bvid = input.Text?.Trim() ?? "";
         if (string.IsNullOrEmpty(bvid))
@@ -438,7 +466,7 @@ public partial class SettingsView : UserControl
             CoverUrl = info?.CoverUrl ?? ""
         });
 
-        SaveList(filePath, entries);
+        SaveList(entries, isWhite);
         input.Text = "";
     }
 
@@ -448,7 +476,7 @@ public partial class SettingsView : UserControl
         {
             var entry = WhiteEntries.FirstOrDefault(x => x.Bvid == bvid);
             if (entry != null) WhiteEntries.Remove(entry);
-            SaveList(_whiteFile, WhiteEntries);
+            SaveList(WhiteEntries, true);
         }
     }
 
@@ -458,26 +486,17 @@ public partial class SettingsView : UserControl
         {
             var entry = BlackEntries.FirstOrDefault(x => x.Bvid == bvid);
             if (entry != null) BlackEntries.Remove(entry);
-            SaveList(_blackFile, BlackEntries);
+            SaveList(BlackEntries, false);
         }
     }
 
-    private static void SaveList(string filePath, ObservableCollection<ListEntry> entries)
+    /// <summary>写回当前标签的名单文件（注释行由 ListService 保留）</summary>
+    private void SaveList(ObservableCollection<ListEntry> entries, bool isWhite)
     {
-        var lines = entries.Select(e => e.Bvid).ToList();
-        // 保留注释行
-        var comments = new List<string>();
-        if (File.Exists(filePath))
-        {
-            foreach (var line in File.ReadAllLines(filePath, System.Text.Encoding.UTF8))
-            {
-                if (line.TrimStart().StartsWith('#'))
-                    comments.Add(line);
-            }
-        }
-        using var sw = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-        foreach (var bv in lines) sw.WriteLine(bv);
-        foreach (var c in comments) sw.WriteLine(c);
+        var svc = CurrentListService();
+        var bvids = entries.Select(e => e.Bvid).ToList();
+        if (isWhite) svc.SaveWhitelist(bvids);
+        else svc.SaveBlacklist(bvids);
     }
 
     private void Bvid_Click(object? sender, Avalonia.Input.PointerPressedEventArgs e)
@@ -494,10 +513,12 @@ public partial class SettingsView : UserControl
 
     // ===== Tab 4: 数据文件（起算值备份 + 运行日志） =====
 
-    /// <summary>当前搜索标签：起算值与记录都按标签隔离存放</summary>
+    /// <summary>当前搜索标签：起算值、记录、黑白名单都按标签隔离存放</summary>
     private string CurrentTag()
     {
-        try { return _configSvc.Load().SearchKeyword; }
+        if (_listsTagSelector?.CurrentTag is { Length: > 0 } t) return t;
+
+        try { return TagService.Normalize(_configSvc.Load().SearchKeyword); }
         catch { return ""; }
     }
 

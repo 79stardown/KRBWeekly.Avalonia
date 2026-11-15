@@ -388,8 +388,10 @@
                                 <TextBlock Text="查看文件" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
-                        <TextBlock Classes="hint" VerticalAlignment="Center"
-                                   Text="名单文件：Data\whitelist.txt / blacklist.txt" />
+                        <TextBlock x:Name="TxtListsTag" Classes="hint" VerticalAlignment="Center"
+                                   Text="当前标签的名单" />
+                        <ComboBox x:Name="CbListsTag" Width="200" Height="30" VerticalAlignment="Center"
+                                  ToolTip.Tip="名单跟着标签走；下拉最底部可以新建标签" />
                     </StackPanel>
 
                     <!-- 白名单 -->
@@ -496,6 +498,13 @@
             <TabItem Header="数据文件">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="16" Spacing="12">
+
+                        <!-- 标签选择（起算值/记录都按标签隔离） -->
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="标签:" FontSize="13" VerticalAlignment="Center" />
+                            <ComboBox x:Name="CbDataTag" Width="200" Height="30" VerticalAlignment="Center"
+                                      ToolTip.Tip="起算值和记录跟着标签走；下拉最底部可以新建标签" />
+                        </StackPanel>
 
                         <!-- 起算值状态 -->
                         <Border Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8" Padding="16"
