@@ -25,6 +25,13 @@ public partial class StatisticsView : UserControl
     private bool _isRunning;
     private bool _rateLimitNotified;
     private TagSelector? _tagSelector;
+
+    // 界面日志：只保留最近若干行，放进虚拟化列表里渲染（几千行也不会拖死 UI）
+    private readonly System.Collections.ObjectModel.ObservableCollection<string> _logLines = new();
+    private readonly Queue<string> _pendingLog = new();
+    private bool _logFlushQueued;
+    private const int MaxLogLines = 2000;
+
     private DateTime _effectiveNow;
 
     /// <summary>统计完成并自动存档后触发（MainWindow 订阅后自动切换到筛选视图）</summary>
@@ -44,6 +51,7 @@ public partial class StatisticsView : UserControl
         _configSvc = new ConfigService(_dataDir);
         _tagSelector = new TagSelector(CbSearchTag, _dataDir, _configSvc);
         _tagSelector.TagChanged += _ => LoadListStatus();
+        LogList.ItemsSource = _logLines;
 
         Loaded += (_, _) =>
         {
@@ -148,7 +156,7 @@ public partial class StatisticsView : UserControl
 
         _isRunning = true;
         BtnStart.IsEnabled = false;
-        TxtLog.Text = "";
+        ResetLogView();
 
         try
         {
@@ -479,15 +487,61 @@ public partial class StatisticsView : UserControl
         });
     }
 
+    /// <summary>
+    /// 写日志：文件同步落盘，界面侧只把行塞进队列、空闲时整批灌进虚拟化列表。
+    /// 旧实现每行都 TxtLog.Text += 并重设光标，行数上千后每次都要整段重排版，
+    /// 实测跑到几百个视频时 UI 线程会被拖死（窗口「无响应」）。
+    /// </summary>
     private void Log(string msg)
     {
-        // 同步写入日志文件（供「设置 → 数据文件 → 运行日志」查看）
         LogService.Append(msg);
 
-        Dispatcher.UIThread.InvokeAsync(() =>
+        lock (_pendingLog) _pendingLog.Enqueue(msg);
+
+        if (_logFlushQueued) return;
+        _logFlushQueued = true;
+        Dispatcher.UIThread.Post(FlushLog, DispatcherPriority.Background);
+    }
+
+    private void FlushLog()
+    {
+        _logFlushQueued = false;
+
+        var batch = new List<string>();
+        lock (_pendingLog)
         {
-            TxtLog.Text += msg + Environment.NewLine;
-            TxtLog.CaretIndex = TxtLog.Text.Length;
-        });
+            while (_pendingLog.Count > 0) batch.Add(_pendingLog.Dequeue());
+        }
+        if (batch.Count == 0) return;
+
+        foreach (var line in batch) _logLines.Add(line);
+
+        // 只留最近 MaxLogLines 行（多出来的从头部删）
+        var overflow = _logLines.Count - MaxLogLines;
+        for (int i = 0; i < overflow; i++) _logLines.RemoveAt(0);
+
+        if (_logLines.Count > 0)
+        {
+            // 自动滚到底：直接操作内部 ScrollViewer，避开 ScrollIntoView 的同步排版
+            try
+            {
+                var sv = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(LogList)
+                    .OfType<ScrollViewer>()
+                    .FirstOrDefault();
+                sv?.ScrollToEnd();
+            }
+            catch
+            {
+                // 滚动失败不影响日志本身
+            }
+        }
+    }
+
+    /// <summary>开始新一轮前清空界面日志（队列一起清）</summary>
+    private void ResetLogView()
+    {
+        lock (_pendingLog) _pendingLog.Clear();
+        _logFlushQueued = false;
+        _logLines.Clear();
     }
 }

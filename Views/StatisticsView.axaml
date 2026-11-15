@@ -2,6 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="using:FluentAvalonia.UI.Controls"
              x:Class="KRBWeekly.Views.StatisticsView">
+    <UserControl.Styles>
+        <!-- 日志行压紧一点（只改 ListBoxItem 的内边距，不动默认模板） -->
+        <Style Selector="ListBox#LogList > ListBoxItem">
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+    </UserControl.Styles>
+
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24,20" Spacing="12">
@@ -70,17 +78,26 @@
             </Grid>
 
             <!-- 日志控制台（占主高度） -->
-            <!-- Background 必须显式给不透明色：Fluent 的 TextBox 模板内部会盖一层半透明浅色，
-                 Transparent 挡不住，会把深色底洗成灰色 -->
-            <Border Background="#FF1E1E1E" CornerRadius="8" Padding="12">
-                <TextBox x:Name="TxtLog"
-                         Background="#FF1E1E1E" Foreground="#FFD4D4D4"
-                         FontFamily="Consolas" FontSize="12"
-                         BorderThickness="0" IsReadOnly="True"
-                         AcceptsReturn="True" TextWrapping="NoWrap"
+            <!-- 用虚拟化的 ListBox 而不是一个大 TextBox：几千行文本每次刷整段会重排版，
+                 跑到几百个视频时会把 UI 线程拖死（表现为窗口无响应） -->
+            <Border Background="#FF1E1E1E" CornerRadius="8" Padding="8">
+                <ListBox x:Name="LogList"
+                         Background="#FF1E1E1E"
+                         BorderThickness="0"
+                         Padding="0"
+                         Height="420"
+                         SelectionMode="Single"
                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                         ScrollViewer.VerticalScrollBarVisibility="Visible"
-                         MinHeight="380" />
+                         ScrollViewer.VerticalScrollBarVisibility="Visible">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <SelectableTextBlock Text="{Binding}"
+                                                 FontFamily="Consolas" FontSize="12"
+                                                 Foreground="#FFD4D4D4" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </Border>
 
             <!-- 底部状态栏 -->
